@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Monorepo charpente : moteur paramétrique (@charpente/moteur) + configurateur web (@charpente/web).",
+  "packageManager": "pnpm@11.0.9",
   "scripts": {
     "test": "pnpm -r --if-present test",
     "type-check": "pnpm -r --if-present type-check",
