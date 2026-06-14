@@ -23,6 +23,10 @@ describe("App — rendu statique du projet par défaut", () => {
     expect(html).toContain("Mon entreprise");
   });
 
+  it("affiche le panneau client & devis", () => {
+    expect(html).toContain("Client &amp; devis");
+  });
+
   it("affiche les résultats : géométrie, nomenclature, coupe SVG", () => {
     expect(html).toContain("Surface toiture");
     expect(html).toContain("Chevron");

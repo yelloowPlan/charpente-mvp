@@ -10,6 +10,9 @@ import {
   sauverEntreprise,
   chargerEntreprise,
   entrepriseVide,
+  sauverDocument,
+  chargerDocument,
+  documentVide,
 } from "./persistence.ts";
 
 /** Faux magasin en mémoire (pas de navigateur requis). */
@@ -106,5 +109,36 @@ describe("persistence — entreprise", () => {
     const s = fauxMagasin();
     s.setItem("charpente.entreprise.v1", JSON.stringify({ raisonSociale: "X" }));
     expect(chargerEntreprise(s)).toBeNull();
+  });
+});
+
+describe("persistence — document de devis", () => {
+  it("documentVide : client vide + validité 30 j", () => {
+    const d = documentVide();
+    expect(d.validiteJours).toBe(30);
+    expect(d.client.nom).toBe("");
+  });
+
+  it("aller-retour du document", () => {
+    const s = fauxMagasin();
+    expect(chargerDocument(s)).toBeNull();
+    sauverDocument(s, {
+      client: { nom: "M. Martin", adresse: "3 rue X", codePostal: "73100", ville: "Aix" },
+      numeroDevis: "DEV-1",
+      validiteJours: 45,
+    });
+    const d = chargerDocument(s);
+    expect(d?.client.nom).toBe("M. Martin");
+    expect(d?.numeroDevis).toBe("DEV-1");
+    expect(d?.validiteJours).toBe(45);
+  });
+
+  it("ignore un document corrompu (validité non numérique)", () => {
+    const s = fauxMagasin();
+    s.setItem(
+      "charpente.document.v1",
+      JSON.stringify({ client: { nom: "", adresse: "", codePostal: "", ville: "" }, numeroDevis: "", validiteJours: "x" }),
+    );
+    expect(chargerDocument(s)).toBeNull();
   });
 });

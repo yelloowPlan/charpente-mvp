@@ -1,5 +1,5 @@
 import type { Etude } from "../engine/etude.ts";
-import type { Entreprise } from "../domain/types.ts";
+import type { Entreprise, Client } from "../domain/types.ts";
 import { coupeTransversaleSvg } from "./schema-svg.ts";
 
 /**
@@ -14,6 +14,14 @@ export interface OptionsHtml {
   entreprise?: Entreprise;
   /** nom du chantier, affiché à côté du titre */
   referenceChantier?: string;
+  /** client destinataire (bloc « À l'attention de ») */
+  client?: Client;
+  /** numéro de devis */
+  numeroDevis?: string;
+  /** date du devis (chaîne déjà formatée) */
+  dateDevis?: string;
+  /** durée de validité du devis, en jours */
+  validiteJours?: number;
 }
 
 const esc = (s: string): string =>
@@ -38,6 +46,31 @@ function enteteEntreprise(e?: Entreprise): string {
     contact ? esc(contact) : "",
   ].filter((l) => l !== "");
   return `<div class="entete-entreprise">${lignes.map((l) => `<div>${l}</div>`).join("")}</div>`;
+}
+
+/** Bloc client + métadonnées de devis (n°, date, validité), rendu si non vide. */
+function blocDevis(o: OptionsHtml): string {
+  const c = o.client;
+  const aClient = !!c && [c.nom, c.adresse, c.codePostal, c.ville].some((x) => x && x.trim() !== "");
+  const meta: string[] = [];
+  if (o.numeroDevis && o.numeroDevis.trim()) meta.push(`<div><strong>Devis n° ${esc(o.numeroDevis)}</strong></div>`);
+  if (o.dateDevis && o.dateDevis.trim()) meta.push(`<div>Date : ${esc(o.dateDevis)}</div>`);
+  if (typeof o.validiteJours === "number" && o.validiteJours > 0)
+    meta.push(`<div>Validité : ${o.validiteJours} jours</div>`);
+
+  if (!aClient && meta.length === 0) return "";
+
+  const villeClient = c ? [c.codePostal, c.ville].filter((x) => x && x.trim()).join(" ") : "";
+  const clientHtml = aClient
+    ? `<div class="bloc-client">
+        <div class="petit-titre">À l'attention de</div>
+        ${c!.nom ? `<div><strong>${esc(c!.nom)}</strong></div>` : ""}
+        ${c!.adresse ? `<div>${esc(c!.adresse)}</div>` : ""}
+        ${villeClient ? `<div>${esc(villeClient)}</div>` : ""}
+      </div>`
+    : "<div></div>";
+  const metaHtml = `<div class="bloc-meta">${meta.join("")}</div>`;
+  return `<div class="bloc-devis">${clientHtml}${metaHtml}</div>`;
 }
 
 const eur = (cents: number): string =>
@@ -139,11 +172,15 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
   .pied { margin-top: 28px; color: var(--gris); font-size: 12px; border-top: 1px solid var(--trait); padding-top: 10px; }
   .entete-entreprise { font-size: 13px; line-height: 1.4; margin: 0 0 16px; padding-bottom: 12px; border-bottom: 2px solid var(--encre); }
   .entete-entreprise strong { font-size: 16px; }
+  .bloc-devis { display: flex; justify-content: space-between; gap: 24px; font-size: 13px; margin: 0 0 16px; }
+  .bloc-meta { text-align: right; white-space: nowrap; }
+  .petit-titre { color: var(--gris); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
   @media print { body { margin: 0; max-width: none; } h2 { page-break-after: avoid; } tr { page-break-inside: avoid; } }
 </style>
 </head>
 <body>
   ${enteteEntreprise(options.entreprise)}
+  ${blocDevis(options)}
   <h1>Étude de charpente${options.referenceChantier ? ` — ${esc(options.referenceChantier)}` : ""}</h1>
   <p class="meta">Bâtiment ${nb(p.batiment.longueurM)} × ${nb(p.batiment.largeurM)} m ·
      pente ${p.toiture.penteDeg}° · couverture ${esc(p.toiture.couverture.type)} ·

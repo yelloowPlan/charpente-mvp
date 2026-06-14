@@ -11,6 +11,7 @@ import { ParamForm } from "./components/ParamForm.tsx";
 import { Resultats } from "./components/Resultats.tsx";
 import { GestionProjets } from "./components/GestionProjets.tsx";
 import { EntrepriseForm } from "./components/EntrepriseForm.tsx";
+import { ClientDevisForm } from "./components/ClientDevisForm.tsx";
 import {
   magasinNavigateur,
   chargerBrouillon,
@@ -21,7 +22,11 @@ import {
   chargerEntreprise,
   sauverEntreprise,
   entrepriseVide,
+  chargerDocument,
+  sauverDocument,
+  documentVide,
   type ProjetEnregistre,
+  type DocumentDevis,
 } from "./lib/persistence.ts";
 
 type Resultat =
@@ -42,6 +47,7 @@ export default function App() {
   const [entreprise, setEntreprise] = useState<Entreprise>(
     () => chargerEntreprise(store) ?? entrepriseVide(),
   );
+  const [doc, setDoc] = useState<DocumentDevis>(() => chargerDocument(store) ?? documentVide());
   const [onglet, setOnglet] = useState<Onglet>("form");
 
   // Auto-save du projet de travail (survit au rafraîchissement).
@@ -53,6 +59,11 @@ export default function App() {
   useEffect(() => {
     sauverEntreprise(store, entreprise);
   }, [store, entreprise]);
+
+  // Auto-save du document de devis (client, n°, validité).
+  useEffect(() => {
+    sauverDocument(store, doc);
+  }, [store, doc]);
 
   // Le moteur est synchrone et bon marché : on recalcule à chaque changement.
   const resultat = useMemo<Resultat>(() => {
@@ -122,6 +133,7 @@ export default function App() {
           />
           <ParamForm projet={projet} onChange={setProjet} />
           <EntrepriseForm entreprise={entreprise} onChange={setEntreprise} />
+          <ClientDevisForm doc={doc} onChange={setDoc} />
         </section>
 
         <section
@@ -133,6 +145,9 @@ export default function App() {
               etude={resultat.etude}
               entreprise={entreprise}
               referenceChantier={nom.trim()}
+              client={doc.client}
+              numeroDevis={doc.numeroDevis}
+              validiteJours={doc.validiteJours}
             />
           ) : (
             <div className="bloc erreurs" role="alert">

@@ -1,6 +1,7 @@
 import {
   type Etude,
   type Entreprise,
+  type Client,
   coupeTransversaleSvg,
   etudeVersHtml,
   nomenclatureVersCsv,
@@ -14,9 +15,19 @@ interface Props {
   etude: Etude;
   entreprise?: Entreprise;
   referenceChantier?: string;
+  client?: Client;
+  numeroDevis?: string;
+  validiteJours?: number;
 }
 
-export function Resultats({ etude, entreprise, referenceChantier }: Props) {
+export function Resultats({
+  etude,
+  entreprise,
+  referenceChantier,
+  client,
+  numeroDevis,
+  validiteJours,
+}: Props) {
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
 
   const svg = coupeTransversaleSvg({
@@ -28,8 +39,17 @@ export function Resultats({ etude, entreprise, referenceChantier }: Props) {
   });
 
   const dateGeneration = new Date().toISOString().slice(0, 10);
+  const dateDevis = new Date().toLocaleDateString("fr-FR");
   const htmlEtude = () =>
-    etudeVersHtml(etude, { dateGeneration, entreprise, referenceChantier });
+    etudeVersHtml(etude, {
+      dateGeneration,
+      entreprise,
+      referenceChantier,
+      client,
+      numeroDevis,
+      dateDevis,
+      validiteJours,
+    });
 
   return (
     <div className="resultats">

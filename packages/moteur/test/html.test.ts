@@ -96,4 +96,38 @@ describe("export HTML", () => {
     const h = etudeVersHtml(etude, { referenceChantier: "Maison Martin" });
     assert.ok(h.includes("Étude de charpente — Maison Martin"));
   });
+
+  it("n'affiche pas de bloc devis/client par défaut", () => {
+    assert.ok(!html.includes('<div class="bloc-devis">'));
+  });
+
+  it("affiche le bloc client + n° + date + validité", () => {
+    const h = etudeVersHtml(etude, {
+      client: { nom: "M. Martin", adresse: "3 chemin du Bois", codePostal: "73100", ville: "Aix" },
+      numeroDevis: "DEV-2026-001",
+      dateDevis: "14/06/2026",
+      validiteJours: 30,
+    });
+    assert.ok(h.includes('<div class="bloc-devis">'));
+    assert.ok(h.includes("À l'attention de"));
+    assert.ok(h.includes("M. Martin"));
+    assert.ok(h.includes("73100 Aix"));
+    assert.ok(h.includes("Devis n° DEV-2026-001"));
+    assert.ok(h.includes("Date : 14/06/2026"));
+    assert.ok(h.includes("Validité : 30 jours"));
+  });
+
+  it("affiche le bloc même sans client si un n° est fourni", () => {
+    const h = etudeVersHtml(etude, { numeroDevis: "X-1" });
+    assert.ok(h.includes('<div class="bloc-devis">'));
+    assert.ok(!h.includes("À l'attention de"));
+  });
+
+  it("échappe le HTML dans le client", () => {
+    const h = etudeVersHtml(etude, {
+      client: { nom: "<b>x</b>", adresse: "", codePostal: "", ville: "" },
+    });
+    assert.ok(!h.includes("<b>x</b>"));
+    assert.ok(h.includes("&lt;b&gt;x&lt;/b&gt;"));
+  });
 });

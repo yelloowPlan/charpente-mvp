@@ -162,3 +162,11 @@ export interface Entreprise {
   telephone: string;
   email: string;
 }
+
+/** Client destinataire du devis (tous champs optionnels). */
+export interface Client {
+  nom: string;
+  adresse: string;
+  codePostal: string;
+  ville: string;
+}

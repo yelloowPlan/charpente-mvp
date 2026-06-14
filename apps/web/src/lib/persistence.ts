@@ -1,4 +1,4 @@
-import type { ParametresProjet, Entreprise } from "@charpente/moteur";
+import type { ParametresProjet, Entreprise, Client } from "@charpente/moteur";
 
 /**
  * Persistance locale des projets (localStorage).
@@ -162,6 +162,51 @@ export function chargerEntreprise(store: Magasin): Entreprise | null {
     if (!brut) return null;
     const e: unknown = JSON.parse(brut);
     return estEntreprise(e) ? e : null;
+  } catch {
+    return null;
+  }
+}
+
+/* ---------- document de devis (client + n° + validité) ---------- */
+
+const CLE_DOCUMENT = "charpente.document.v1";
+
+export interface DocumentDevis {
+  client: Client;
+  numeroDevis: string;
+  validiteJours: number;
+}
+
+export function documentVide(): DocumentDevis {
+  return {
+    client: { nom: "", adresse: "", codePostal: "", ville: "" },
+    numeroDevis: "",
+    validiteJours: 30,
+  };
+}
+
+function estClient(c: unknown): c is Client {
+  if (typeof c !== "object" || c === null) return false;
+  const o = c as Record<string, unknown>;
+  return ["nom", "adresse", "codePostal", "ville"].every((k) => typeof o[k] === "string");
+}
+
+function estDocument(d: unknown): d is DocumentDevis {
+  if (typeof d !== "object" || d === null) return false;
+  const o = d as Record<string, unknown>;
+  return estClient(o.client) && typeof o.numeroDevis === "string" && typeof o.validiteJours === "number";
+}
+
+export function sauverDocument(store: Magasin, doc: DocumentDevis): void {
+  ecrire(store, CLE_DOCUMENT, doc);
+}
+
+export function chargerDocument(store: Magasin): DocumentDevis | null {
+  try {
+    const brut = store.getItem(CLE_DOCUMENT);
+    if (!brut) return null;
+    const d: unknown = JSON.parse(brut);
+    return estDocument(d) ? d : null;
   } catch {
     return null;
   }
