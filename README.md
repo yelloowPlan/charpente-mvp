@@ -18,11 +18,20 @@ apps/web          @charpente/web     — configurateur Vite + React (le moteur t
 
 | Supporté (MVP) | Hors périmètre (versions suivantes) |
 |---|---|
-| Toiture **deux pans symétriques** | Croupes, arêtiers, noues, lucarnes, mansart |
+| Toiture **deux pans** + **appentis (mono-pan)** | Croupes, arêtiers, noues, lucarnes, mansart |
 | Charpente **traditionnelle à pannes** | Fermettes industrielles, ossature bois, CLT |
 | Métré géométrique exact | Modeleur solide 3D, coupes composées (dévers) |
 | Débit barres + liteaunage au ml | Pilotage machine (export BTLx) |
 | **Vérif. flèche ELS indicative** | Note de calcul Eurocode 5 complète (ELU, assemblages) |
+| **Devis pro** (en-tête entreprise, client, n°, validité) | Acomptes, échéancier, signature électronique |
+| **Sauvegarde locale** des projets (navigateur) | Comptes, cloud, multi-utilisateur |
+
+### Fonctionnalités de l'app web
+Configurateur live (toute saisie recalcule géométrie, nomenclature, débit, devis) ·
+schéma de **coupe transversale** (2 pans / appentis) · **exports** HTML imprimable
+(→ PDF) et CSV · **profil entreprise** + **bloc client / n° / validité** sur le devis ·
+**sauvegarde locale** (projets nommés, auto-restauration) · **UX mobile** (onglets,
+champs tactiles) · installable (« ajout à l'écran d'accueil »).
 
 ## Décisions de conception (les plus importantes)
 
@@ -44,8 +53,9 @@ apps/web          @charpente/web     — configurateur Vite + React (le moteur t
 
 - La vérification structurelle ne couvre **que la flèche (ELS)** — pas l'ELU, le
   flambement, le déversement ni les assemblages. **Ne remplace pas un bureau d'études.**
-- Géométrie limitée aux **deux pans** : dès qu'il y a croupe/noue/lucarne, il faudra
-  un vrai noyau solide 3D (verrou technique majeur, cf. analyse produit).
+- Géométrie limitée aux **deux pans / appentis** : dès qu'il y a croupe/noue/lucarne,
+  il faudra un vrai noyau solide 3D (verrou technique majeur, cf. analyse produit).
+- Appentis : supports intermédiaires des pannes (poteaux/portiques) non calculés (alerte).
 - Le poids propre du bois est négligé dans la charge (conservateur, documenté).
 
 ## Utilisation
@@ -54,7 +64,7 @@ Prérequis : **Node ≥ 22.18** (le moteur tourne en TypeScript natif, sans buil
 
 ```bash
 pnpm install
-pnpm test          # tous les packages : 57 tests moteur (valeurs exactes + invariants + exports)
+pnpm test          # tous les packages : 77 tests moteur + 22 tests web (rendu + persistance)
 pnpm type-check    # tous les packages (tsc --noEmit strict)
 pnpm dev           # lance le configurateur web (Vite, http://localhost:5173)
 pnpm build:web     # build de production de l'app web
@@ -115,15 +125,21 @@ Dans `packages/moteur/` :
 - `test/` — suite `node:test`
 
 Dans `apps/web/` (Vite + React) :
-- `src/App.tsx` — état du projet + recalcul live via `etudier()`
-- `src/components/ParamForm.tsx` — formulaire paramétrique
+- `src/App.tsx` — état (projet, entreprise, document) + recalcul live via `etudier()`
+- `src/components/ParamForm.tsx` — formulaire paramétrique (dont typologie)
 - `src/components/Resultats.tsx` — géométrie, coupe SVG, tables, devis, exports
+- `src/components/{GestionProjets,EntrepriseForm,ClientDevisForm}.tsx` — sauvegarde & en-tête devis
+- `src/lib/persistence.ts` — localStorage (fonctions pures, testées, SSR-safe)
 - composants purement présentationnels (portables vers un autre framework)
 
 ## Prochaines étapes (roadmap)
 
-1. ~~**Export** (HTML imprimable + CSV + schéma de coupe SVG)~~ ✅ fait.
-2. ~~**UI configurateur** web (formulaire + résultats live + export)~~ ✅ fait (`apps/web`).
-3. **Typologies** : appentis, puis croupe (introduit le besoin de solide 3D).
-4. **Interop** : export BTLx (pilotage machine atelier).
-5. **IA d'assistance** : relevé (photogrammétrie / orthophoto IGN), lecture de plan PDF.
+Fait : ✅ moteur déterministe · ✅ exports (HTML/CSV/SVG) · ✅ configurateur web ·
+✅ typologie appentis · ✅ devis pro (entreprise/client) · ✅ sauvegarde locale ·
+✅ UX mobile · ✅ déploiement continu (Netlify).
+
+À venir (V2 — décisions produit requises) :
+1. **Typologies complexes** : croupe, lucarnes (introduit le besoin de solide 3D).
+2. **Interop** : export BTLx (pilotage machine atelier).
+3. **IA d'assistance** : relevé (photogrammétrie / orthophoto IGN), lecture de plan PDF.
+4. **Comptes & cloud** : multi-utilisateur, partage, historique serveur.

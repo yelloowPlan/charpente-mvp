@@ -51,10 +51,17 @@ export function Resultats({
       validiteJours,
     });
 
+  // Nom de fichier lisible : n° de devis ou nom du chantier, sinon « charpente ».
+  const slug =
+    (numeroDevis?.trim() || referenceChantier?.trim() || "charpente")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "charpente";
+
   return (
     <div className="resultats">
       <div className="export-bar">
-        <button onClick={() => telecharger("etude-charpente.html", htmlEtude(), "text/html")}>
+        <button onClick={() => telecharger(`devis-${slug}.html`, htmlEtude(), "text/html")}>
           ⬇ Étude HTML (imprimable)
         </button>
         <button onClick={() => telecharger("devis.csv", devisVersCsv(devis), "text/csv")}>⬇ Devis CSV</button>
