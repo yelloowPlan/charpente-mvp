@@ -24,6 +24,7 @@ export function Resultats({ etude, entreprise, referenceChantier }: Props) {
     hauteurFaitageM: g.hauteurFaitageM,
     penteDeg: p.toiture.penteDeg,
     nbPannesIntermParPan: nom.nbPannesIntermediairesParPan,
+    nbPans: g.nbPans,
   });
 
   const dateGeneration = new Date().toISOString().slice(0, 10);

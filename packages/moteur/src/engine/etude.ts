@@ -32,8 +32,8 @@ export function validerProjet(p: ParametresProjet): Alerte[] {
   const bloquant = (message: string) => a.push({ niveau: "bloquant", message });
 
   // Périmètre MVP
-  if (p.toiture.typologie !== "deux_pans") {
-    bloquant("MVP : seules les toitures deux pans symétriques sont supportées (typologie ≠ deux_pans).");
+  if (p.toiture.typologie !== "deux_pans" && p.toiture.typologie !== "appentis") {
+    bloquant("MVP : typologies supportées = deux pans symétriques ou appentis (mono-pan).");
   }
   if (p.charpente.type !== "trad_pannes") {
     bloquant("MVP : seule la charpente traditionnelle à pannes est supportée (type ≠ trad_pannes).");
@@ -109,6 +109,15 @@ export function etudier(p: ParametresProjet): Etude {
         "Ne remplacent pas une note de calcul Eurocode 5 — faire valider par un bureau d'études.",
     },
   ];
+
+  if (geometrie.nbPans === 1) {
+    alertes.push({
+      niveau: "attention",
+      message:
+        "Appentis : les pannes reposent sur les murs de rive ; les supports intermédiaires " +
+        "(poteaux/portiques) pour les grandes longueurs ne sont pas calculés en MVP.",
+    });
+  }
 
   return { projet: p, geometrie, nomenclature, debit, devis, alertes };
 }

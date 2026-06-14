@@ -54,6 +54,7 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
     hauteurFaitageM: g.hauteurFaitageM,
     penteDeg: p.toiture.penteDeg,
     nbPannesIntermParPan: nom.nbPannesIntermediairesParPan,
+    nbPans: g.nbPans,
   });
 
   const lignesNomenclature = nom.elements

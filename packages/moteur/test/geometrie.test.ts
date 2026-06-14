@@ -36,3 +36,26 @@ describe("calculerGeometrie — exemple de référence (10×8 m, pente 45°)", (
     assert.ok(g0.rampantM < 4.5);
   });
 });
+
+describe("calculerGeometrie — appentis (mono-pan, 8×10 m, pente 45°)", () => {
+  const base = projetParDefaut();
+  const g = calculerGeometrie(
+    projetParDefaut({ ...base, toiture: { ...base.toiture, typologie: "appentis" } }),
+  );
+
+  it("un seul pan", () => {
+    assert.equal(g.nbPans, 1);
+  });
+
+  it("rampant = (W + d)/cos α ≈ 11,879 m (pente sur toute la portée)", () => {
+    closeTo(g.rampantM, 11.879, 2);
+  });
+
+  it("hauteur = W·tan 45° = 8 m", () => {
+    closeTo(g.hauteurFaitageM, 8.0, 4);
+  });
+
+  it("surface = 1 pan ≈ 125,92 m²", () => {
+    closeTo(g.surfaceToitureM2, 125.92, 1);
+  });
+});

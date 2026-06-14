@@ -3,6 +3,7 @@ import type {
   ParametresBatiment,
   Couverture,
   ParametresCharpente,
+  TypeToiture,
 } from "@charpente/moteur";
 
 /** Presets de couverture (pureau + poids surfacique). */
@@ -27,6 +28,9 @@ export function ParamForm({ projet, onChange }: Props) {
 
   const setPente = (v: number) =>
     onChange({ ...projet, toiture: { ...projet.toiture, penteDeg: v } });
+
+  const setTypologie = (t: string) =>
+    onChange({ ...projet, toiture: { ...projet.toiture, typologie: t as TypeToiture } });
 
   const setCouv = <K extends keyof Couverture>(k: K, v: Couverture[K]) =>
     onChange({
@@ -84,6 +88,15 @@ export function ParamForm({ projet, onChange }: Props) {
 
       <fieldset>
         <legend>Toiture</legend>
+        <Select
+          label="Type de toiture"
+          value={projet.toiture.typologie}
+          options={[
+            ["deux_pans", "Deux pans"],
+            ["appentis", "Appentis (1 pan)"],
+          ]}
+          onChange={setTypologie}
+        />
         <Nombre label="Pente (°)" value={projet.toiture.penteDeg} step={1} onChange={setPente} />
         <Select
           label="Couverture"

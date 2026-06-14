@@ -15,10 +15,16 @@ describe("validerProjet — règles bloquantes", () => {
     assert.ok(validerProjet(p).some((a) => a.niveau === "bloquant"));
   });
 
-  it("rejette une typologie non supportée (hors MVP)", () => {
+  it("accepte l'appentis (typologie supportée)", () => {
     const base = projetParDefaut();
     const p = projetParDefaut({ ...base, toiture: { ...base.toiture, typologie: "appentis" } });
-    assert.ok(validerProjet(p).some((a) => a.message.includes("deux pans")));
+    assert.equal(validerProjet(p).filter((a) => a.niveau === "bloquant").length, 0);
+  });
+
+  it("rejette une charpente hors périmètre (fermette)", () => {
+    const base = projetParDefaut();
+    const p = projetParDefaut({ ...base, charpente: { ...base.charpente, type: "fermette" } });
+    assert.ok(validerProjet(p).some((a) => a.niveau === "bloquant"));
   });
 
   it("rejette une largeur nulle", () => {

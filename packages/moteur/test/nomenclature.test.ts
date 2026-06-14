@@ -64,3 +64,36 @@ describe("genererNomenclature — exemple de référence", () => {
     for (const el of nom.elements) assert.ok(el.formule.length > 0);
   });
 });
+
+describe("genererNomenclature — appentis (mono-pan)", () => {
+  const base = projetParDefaut();
+  const nomA = genererNomenclature(
+    projetParDefaut({ ...base, toiture: { ...base.toiture, typologie: "appentis" } }),
+  );
+  const q = (role: RoleElement) =>
+    nomA.elements.filter((e) => e.role === role).reduce((s, e) => s + e.quantite, 0);
+
+  it("24 chevrons (un seul pan)", () => {
+    assert.equal(q("chevron"), 24);
+  });
+
+  it("liteaux = 38 rangs (un seul pan, rampant plus long)", () => {
+    assert.equal(q("liteau"), 38);
+  });
+
+  it("1 panne haute + 1 sablière basse, pas de seconde sablière", () => {
+    assert.equal(q("panne_faitiere"), 1);
+    assert.equal(q("panne_sabliere"), 1);
+  });
+
+  it("4 pannes intermédiaires (un pan)", () => {
+    assert.equal(nomA.nbPannesIntermediairesParPan, 4);
+    assert.equal(q("panne_intermediaire"), 4);
+  });
+
+  it("aucune ferme (appentis)", () => {
+    assert.equal(q("ferme_entrait"), 0);
+    assert.equal(q("ferme_arbaletrier"), 0);
+    assert.equal(q("ferme_poincon"), 0);
+  });
+});

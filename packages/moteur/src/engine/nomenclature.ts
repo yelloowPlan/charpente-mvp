@@ -11,8 +11,8 @@ export interface ResultatNomenclature {
 }
 
 /**
- * Génère la nomenclature complète d'une charpente traditionnelle à pannes
- * sur une toiture deux pans.
+ * Génère la nomenclature complète d'une charpente traditionnelle à pannes,
+ * pour une toiture deux pans OU un appentis mono-pan.
  *
  * Chaque élément porte sa `formule` (traçabilité). Les pannes intermédiaires
  * sont déduites de la portée admissible du chevron (cf. structure.ts).
@@ -23,11 +23,12 @@ export function genererNomenclature(
 ): ResultatNomenclature {
   const g = geo ?? calculerGeometrie(p);
   const c = p.charpente;
+  const np = g.nbPans;
   const elements: Element[] = [];
 
-  // --- Chevrons (2 pans) ---
+  // --- Chevrons ---
   const nbChevronsParPan = Math.floor(g.longueurPanM / c.entraxeChevronM) + 1;
-  const nbChevrons = 2 * nbChevronsParPan;
+  const nbChevrons = np * nbChevronsParPan;
   elements.push({
     role: "chevron",
     nom: "Chevron",
@@ -35,12 +36,12 @@ export function genererNomenclature(
     section: c.sections.chevron,
     quantite: nbChevrons,
     modeDebit: "barre",
-    formule: `2 pans × (⌊${g.longueurPanM.toFixed(2)} / ${c.entraxeChevronM}⌋ + 1) = ${nbChevrons}`,
+    formule: `${np} pan(s) × (⌊${g.longueurPanM.toFixed(2)} / ${c.entraxeChevronM}⌋ + 1) = ${nbChevrons}`,
   });
 
-  // --- Liteaux (rangs, sur 2 pans) ---
+  // --- Liteaux (rangs) ---
   const nbRangsParPan = Math.floor(g.rampantM / p.toiture.couverture.pureauM) + 1;
-  const nbRangsLiteaux = 2 * nbRangsParPan;
+  const nbRangsLiteaux = np * nbRangsParPan;
   elements.push({
     role: "liteau",
     nom: "Liteau",
@@ -48,7 +49,7 @@ export function genererNomenclature(
     section: c.sections.liteau,
     quantite: nbRangsLiteaux,
     modeDebit: "lineaire",
-    formule: `2 pans × (⌊${g.rampantM.toFixed(2)} / ${p.toiture.couverture.pureauM}⌋ + 1) rangs = ${nbRangsLiteaux}`,
+    formule: `${np} pan(s) × (⌊${g.rampantM.toFixed(2)} / ${p.toiture.couverture.pureauM}⌋ + 1) rangs = ${nbRangsLiteaux}`,
   });
 
   // --- Contre-liteaux (1 par chevron, dans le sens du rampant) — si écran ---
@@ -64,7 +65,7 @@ export function genererNomenclature(
     });
   }
 
-  // --- Portée admissible chevron → nombre de pannes intermédiaires ---
+  // --- Portée admissible chevron → nombre de pannes intermédiaires (par pan) ---
   const charge = chargeElsKNm2(p);
   const porteeAdmissibleChevronM = porteeAdmissibleFlecheM(
     c.sections.chevron,
@@ -72,72 +73,96 @@ export function genererNomenclature(
     charge,
     p.essence.moduleEMpa,
   );
-  // Nombre d'appuis intermédiaires nécessaires sur le rampant (hors débord).
   const nbPannesIntermediairesParPan = Math.max(
     0,
     Math.ceil(g.rampantSansDebordM / porteeAdmissibleChevronM) - 1,
   );
 
-  // --- Pannes ---
-  elements.push({
-    role: "panne_faitiere",
-    nom: "Panne faîtière",
-    longueurM: g.longueurPanM,
-    section: c.sections.panne,
-    quantite: 1,
-    modeDebit: "barre",
-    formule: "1 faîtière sur la longueur du pan",
-  });
-  elements.push({
-    role: "panne_sabliere",
-    nom: "Panne sablière",
-    longueurM: g.longueurPanM,
-    section: c.sections.panne,
-    quantite: 2,
-    modeDebit: "barre",
-    formule: "2 sablières (une par mur de rive)",
-  });
+  // --- Pannes hautes / basses ---
+  if (np === 2) {
+    elements.push({
+      role: "panne_faitiere",
+      nom: "Panne faîtière",
+      longueurM: g.longueurPanM,
+      section: c.sections.panne,
+      quantite: 1,
+      modeDebit: "barre",
+      formule: "1 faîtière sur la longueur du pan",
+    });
+    elements.push({
+      role: "panne_sabliere",
+      nom: "Panne sablière",
+      longueurM: g.longueurPanM,
+      section: c.sections.panne,
+      quantite: 2,
+      modeDebit: "barre",
+      formule: "2 sablières (une par mur de rive)",
+    });
+  } else {
+    // appentis : une panne haute + une sablière basse
+    elements.push({
+      role: "panne_faitiere",
+      nom: "Panne haute",
+      longueurM: g.longueurPanM,
+      section: c.sections.panne,
+      quantite: 1,
+      modeDebit: "barre",
+      formule: "1 panne haute (mur haut)",
+    });
+    elements.push({
+      role: "panne_sabliere",
+      nom: "Sablière basse",
+      longueurM: g.longueurPanM,
+      section: c.sections.panne,
+      quantite: 1,
+      modeDebit: "barre",
+      formule: "1 sablière basse (mur bas)",
+    });
+  }
+
   if (nbPannesIntermediairesParPan > 0) {
     elements.push({
       role: "panne_intermediaire",
       nom: "Panne intermédiaire (ventrière)",
       longueurM: g.longueurPanM,
       section: c.sections.panne,
-      quantite: 2 * nbPannesIntermediairesParPan,
+      quantite: np * nbPannesIntermediairesParPan,
       modeDebit: "barre",
-      formule: `2 pans × ${nbPannesIntermediairesParPan} (portée chevron ≈ ${porteeAdmissibleChevronM.toFixed(2)} m pour respecter la flèche L/300)`,
+      formule: `${np} pan(s) × ${nbPannesIntermediairesParPan} (portée chevron ≈ ${porteeAdmissibleChevronM.toFixed(2)} m pour respecter la flèche L/300)`,
     });
   }
 
-  // --- Fermes ---
-  const nbFermes = Math.floor(p.batiment.longueurM / c.entraxeFermeM) + 1;
-  elements.push({
-    role: "ferme_entrait",
-    nom: "Entrait",
-    longueurM: p.batiment.largeurM,
-    section: c.sections.entrait,
-    quantite: nbFermes,
-    modeDebit: "barre",
-    formule: `1 entrait × ${nbFermes} fermes (⌊${p.batiment.longueurM} / ${c.entraxeFermeM}⌋ + 1)`,
-  });
-  elements.push({
-    role: "ferme_arbaletrier",
-    nom: "Arbalétrier",
-    longueurM: g.rampantSansDebordM,
-    section: c.sections.arbaletrier,
-    quantite: 2 * nbFermes,
-    modeDebit: "barre",
-    formule: `2 arbalétriers × ${nbFermes} fermes`,
-  });
-  elements.push({
-    role: "ferme_poincon",
-    nom: "Poinçon",
-    longueurM: g.hauteurFaitageM,
-    section: c.sections.poincon,
-    quantite: nbFermes,
-    modeDebit: "barre",
-    formule: `1 poinçon × ${nbFermes} fermes`,
-  });
+  // --- Fermes (deux pans uniquement) ---
+  if (np === 2) {
+    const nbFermes = Math.floor(p.batiment.longueurM / c.entraxeFermeM) + 1;
+    elements.push({
+      role: "ferme_entrait",
+      nom: "Entrait",
+      longueurM: p.batiment.largeurM,
+      section: c.sections.entrait,
+      quantite: nbFermes,
+      modeDebit: "barre",
+      formule: `1 entrait × ${nbFermes} fermes (⌊${p.batiment.longueurM} / ${c.entraxeFermeM}⌋ + 1)`,
+    });
+    elements.push({
+      role: "ferme_arbaletrier",
+      nom: "Arbalétrier",
+      longueurM: g.rampantSansDebordM,
+      section: c.sections.arbaletrier,
+      quantite: 2 * nbFermes,
+      modeDebit: "barre",
+      formule: `2 arbalétriers × ${nbFermes} fermes`,
+    });
+    elements.push({
+      role: "ferme_poincon",
+      nom: "Poinçon",
+      longueurM: g.hauteurFaitageM,
+      section: c.sections.poincon,
+      quantite: nbFermes,
+      modeDebit: "barre",
+      formule: `1 poinçon × ${nbFermes} fermes`,
+    });
+  }
 
   return { elements, porteeAdmissibleChevronM, nbPannesIntermediairesParPan };
 }

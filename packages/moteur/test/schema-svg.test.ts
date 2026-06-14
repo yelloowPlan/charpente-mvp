@@ -11,6 +11,7 @@ describe("coupeTransversaleSvg", () => {
     hauteurFaitageM: e.geometrie.hauteurFaitageM,
     penteDeg: e.projet.toiture.penteDeg,
     nbPannesIntermParPan: e.nomenclature.nbPannesIntermediairesParPan,
+    nbPans: e.geometrie.nbPans,
   });
 
   it("produit un SVG valide avec viewBox", () => {
@@ -47,5 +48,18 @@ describe("coupeTransversaleSvg", () => {
     assert.ok(svgFaible.includes("<polygon"));
     assert.ok(!svgFaible.includes("NaN"));
     assert.ok(!svgFaible.includes("Infinity"));
+  });
+
+  it("appentis : titre dédié et repères = 2 + nbIntermédiaires", () => {
+    const svgA = coupeTransversaleSvg({
+      largeurM: 8,
+      hauteurFaitageM: 8,
+      penteDeg: 45,
+      nbPannesIntermParPan: 4,
+      nbPans: 1,
+    });
+    assert.ok(svgA.includes("Coupe transversale (appentis)"));
+    const cercles = (svgA.match(/<circle /g) ?? []).length;
+    assert.equal(cercles, 2 + 4 + 1); // repères (2+n) + 1 légende
   });
 });
