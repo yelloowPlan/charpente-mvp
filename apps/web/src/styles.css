@@ -141,6 +141,69 @@ body {
   width: auto;
 }
 
+/* ---- panneau projets ---- */
+.form-projets .ligne-save {
+  display: flex;
+  gap: 8px;
+}
+.form-projets .ligne-save input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--trait);
+  border-radius: 6px;
+  font: inherit;
+}
+.form-projets .ligne-save button {
+  background: var(--encre);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.liste-projets {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.liste-projets li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.liste-projets .charger {
+  flex: 1;
+  text-align: left;
+  background: var(--fond);
+  border: 1px solid var(--trait);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+.liste-projets .charger:hover {
+  border-color: var(--accent);
+}
+.liste-projets .suppr {
+  border: 1px solid var(--trait);
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px 9px;
+  cursor: pointer;
+  color: var(--gris);
+}
+.liste-projets .suppr:hover {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
 /* ---- résultats ---- */
 .bloc {
   background: #fff;

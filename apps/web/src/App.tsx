@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   projetParDefaut,
   etudier,
@@ -8,6 +8,16 @@ import {
 } from "@charpente/moteur";
 import { ParamForm } from "./components/ParamForm.tsx";
 import { Resultats } from "./components/Resultats.tsx";
+import { GestionProjets } from "./components/GestionProjets.tsx";
+import {
+  magasinNavigateur,
+  chargerBrouillon,
+  sauverBrouillon,
+  listerProjets,
+  enregistrerProjet,
+  supprimerProjet,
+  type ProjetEnregistre,
+} from "./lib/persistence.ts";
 
 type Resultat =
   | { ok: true; etude: ReturnType<typeof etudier> }
@@ -16,8 +26,20 @@ type Resultat =
 type Onglet = "form" | "resultats";
 
 export default function App() {
-  const [projet, setProjet] = useState<ParametresProjet>(() => projetParDefaut());
+  const store = useMemo(() => magasinNavigateur(), []);
+
+  // Restaure le projet de travail (brouillon) si présent, sinon projet par défaut.
+  const [projet, setProjet] = useState<ParametresProjet>(
+    () => chargerBrouillon(store) ?? projetParDefaut(),
+  );
+  const [projets, setProjets] = useState<ProjetEnregistre[]>(() => listerProjets(store));
+  const [nom, setNom] = useState("");
   const [onglet, setOnglet] = useState<Onglet>("form");
+
+  // Auto-save du projet de travail (survit au rafraîchissement).
+  useEffect(() => {
+    sauverBrouillon(store, projet);
+  }, [store, projet]);
 
   // Le moteur est synchrone et bon marché : on recalcule à chaque changement.
   const resultat = useMemo<Resultat>(() => {
@@ -28,6 +50,19 @@ export default function App() {
       throw e;
     }
   }, [projet]);
+
+  const handleSave = () => {
+    const n = nom.trim() || "Sans titre";
+    setProjets(enregistrerProjet(store, n, projet, new Date().toISOString()));
+  };
+  const handleLoad = (id: string) => {
+    const p = projets.find((x) => x.id === id);
+    if (p) {
+      setProjet(p.projet);
+      setNom(p.nom);
+    }
+  };
+  const handleDelete = (id: string) => setProjets(supprimerProjet(store, id));
 
   return (
     <div className="app">
@@ -64,6 +99,14 @@ export default function App() {
           className={`colonne-form${onglet === "form" ? " onglet-actif" : ""}`}
           aria-label="Paramètres"
         >
+          <GestionProjets
+            projets={projets}
+            nom={nom}
+            onNom={setNom}
+            onSave={handleSave}
+            onLoad={handleLoad}
+            onDelete={handleDelete}
+          />
           <ParamForm projet={projet} onChange={setProjet} />
         </section>
 
