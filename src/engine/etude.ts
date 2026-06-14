@@ -1,0 +1,114 @@
+import type { Alerte, ParametresProjet } from "../domain/types.ts";
+import { calculerGeometrie, type GeometrieToit } from "./geometrie.ts";
+import { genererNomenclature, type ResultatNomenclature } from "./nomenclature.ts";
+import { planifierDebit, type PlanDebit } from "./debit.ts";
+import { chiffrerDevis, type Devis } from "./devis.ts";
+
+/** Erreur levée lorsqu'au moins une règle de validation bloquante échoue. */
+export class ErreurValidation extends Error {
+  readonly alertes: Alerte[];
+  constructor(alertes: Alerte[]) {
+    super("Projet invalide :\n" + alertes.map((a) => `  - ${a.message}`).join("\n"));
+    this.name = "ErreurValidation";
+    this.alertes = alertes;
+  }
+}
+
+export interface Etude {
+  projet: ParametresProjet;
+  geometrie: GeometrieToit;
+  nomenclature: ResultatNomenclature;
+  debit: PlanDebit;
+  devis: Devis;
+  alertes: Alerte[];
+}
+
+/**
+ * Valide les paramètres d'un projet. Retourne la liste des alertes (info,
+ * attention, bloquant). Les bloquants empêchent le calcul.
+ */
+export function validerProjet(p: ParametresProjet): Alerte[] {
+  const a: Alerte[] = [];
+  const bloquant = (message: string) => a.push({ niveau: "bloquant", message });
+
+  // Périmètre MVP
+  if (p.toiture.typologie !== "deux_pans") {
+    bloquant("MVP : seules les toitures deux pans symétriques sont supportées (typologie ≠ deux_pans).");
+  }
+  if (p.charpente.type !== "trad_pannes") {
+    bloquant("MVP : seule la charpente traditionnelle à pannes est supportée (type ≠ trad_pannes).");
+  }
+
+  // Bornes géométriques
+  if (!(p.toiture.penteDeg > 5 && p.toiture.penteDeg < 85)) {
+    bloquant(`Pente hors bornes réalistes (${p.toiture.penteDeg}°). Attendu : 5° < pente < 85°.`);
+  }
+  if (!(p.batiment.largeurM > 0)) bloquant("Largeur (portée) doit être > 0.");
+  if (!(p.batiment.longueurM > 0)) bloquant("Longueur du bâtiment doit être > 0.");
+  if (!(p.batiment.debordRampantM >= 0)) bloquant("Débord de rampant doit être ≥ 0.");
+  if (!(p.batiment.debordPignonM >= 0)) bloquant("Débord de pignon doit être ≥ 0.");
+
+  // Entraxes & couverture
+  if (!(p.charpente.entraxeChevronM > 0)) bloquant("Entraxe des chevrons doit être > 0.");
+  if (!(p.charpente.entraxeFermeM > 0)) bloquant("Entraxe des fermes doit être > 0.");
+  if (!(p.toiture.couverture.pureauM > 0)) bloquant("Pureau (pas de liteaunage) doit être > 0.");
+
+  // Débit
+  if (p.debit.barresCommercialesM.length === 0) {
+    bloquant("Au moins une longueur commerciale de barre doit être définie.");
+  }
+  if (!(p.debit.kerfMm >= 0)) bloquant("Le trait de scie (kerf) doit être ≥ 0.");
+
+  // Module élastique plausible
+  if (!(p.essence.moduleEMpa > 0)) bloquant("Module d'élasticité (E) doit être > 0.");
+
+  // Avertissements non bloquants
+  if (p.charpente.entraxeFermeM > p.batiment.longueurM) {
+    a.push({
+      niveau: "attention",
+      message:
+        "L'entraxe des fermes dépasse la longueur du bâtiment : une seule ferme de rive sera posée.",
+    });
+  }
+
+  return a;
+}
+
+/**
+ * Pipeline complet : validation → géométrie → nomenclature → débit → devis.
+ * Lève `ErreurValidation` si au moins une règle bloquante échoue.
+ */
+export function etudier(p: ParametresProjet): Etude {
+  const alertesValidation = validerProjet(p);
+  const bloquants = alertesValidation.filter((x) => x.niveau === "bloquant");
+  if (bloquants.length > 0) throw new ErreurValidation(bloquants);
+
+  const geometrie = calculerGeometrie(p);
+  const nomenclature = genererNomenclature(p, geometrie);
+  const debit = planifierDebit(
+    nomenclature.elements,
+    p.debit.barresCommercialesM,
+    p.debit.kerfMm,
+  );
+  const devis = chiffrerDevis(p, geometrie, debit);
+
+  // Agrégation des alertes : validation (hors bloquants) + débit + disclaimer.
+  const alertes: Alerte[] = [
+    ...alertesValidation.filter((x) => x.niveau !== "bloquant"),
+    ...debit.alertes,
+    {
+      niveau: "info",
+      message:
+        `Portée admissible chevron ≈ ${nomenclature.porteeAdmissibleChevronM.toFixed(2)} m ` +
+        `(flèche ELS L/300) → ${nomenclature.nbPannesIntermediairesParPan} panne(s) intermédiaire(s) par pan.`,
+    },
+    {
+      niveau: "info",
+      message:
+        "Vérifications structurelles INDICATIVES (flèche ELS uniquement). " +
+        "Ne remplacent pas une note de calcul Eurocode 5 — faire valider par un bureau d'études.",
+    },
+  ];
+
+  return { projet: p, geometrie, nomenclature, debit, devis, alertes };
+}
