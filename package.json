@@ -9,6 +9,7 @@
   },
   "scripts": {
     "demo": "node src/cli.ts",
+    "export": "node src/export-cli.ts",
     "test": "node --test \"test/**/*.test.ts\"",
     "type-check": "tsc --noEmit"
   },

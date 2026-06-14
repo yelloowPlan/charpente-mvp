@@ -48,10 +48,15 @@ Prérequis : **Node ≥ 22.18** (le moteur tourne en TypeScript natif, sans buil
 
 ```bash
 pnpm install
-pnpm test          # 41 tests : valeurs exactes + invariants de conservation
+pnpm test          # 57 tests : valeurs exactes + invariants + exports
 pnpm type-check    # TypeScript strict (tsc --noEmit)
-pnpm demo          # rapport complet sur le projet de référence (10 × 8 m, pente 45°)
+pnpm demo          # rapport texte sur le projet de référence (10 × 8 m, pente 45°)
+pnpm export        # écrit les livrables dans out/ (HTML imprimable + 3 CSV)
 ```
+
+Les livrables (`out/`) : `etude.html` (devis + nomenclature + débit + **schéma de coupe SVG**,
+imprimable en PDF depuis le navigateur), `nomenclature.csv`, `debit.csv`, `devis.csv`
+(séparateur `;`, décimales virgule, BOM UTF-8 → Excel/LibreOffice FR).
 
 > **Stack volontairement minimale** : aucune dépendance runtime, aucun bundler.
 > Node 24 exécute les `.ts` directement (strip de types) et le runner de tests est
@@ -78,13 +83,14 @@ etudier()  ── orchestre tout et agrège les alertes
 
 - `src/domain/` — modèle de données (`types.ts`) + projet de référence (`defaults.ts`)
 - `src/engine/` — géométrie, structure, nomenclature, débit, devis, orchestrateur
-- `src/cli.ts` — démo (rapport texte)
-- `test/` — suite Vitest
+- `src/export/` — livrables purs (CSV, schéma de coupe SVG, HTML imprimable)
+- `src/cli.ts` — démo (rapport texte) · `src/export-cli.ts` — génération des livrables
+- `test/` — suite `node:test`
 
 ## Prochaines étapes (roadmap)
 
-1. **UI configurateur** (web + mobile) au-dessus de ce moteur — saisie en ~3 min.
-2. **Export** PDF (plans 2D + fiche de débit) et CSV.
+1. ~~**Export** (HTML imprimable + CSV + schéma de coupe SVG)~~ ✅ fait.
+2. **UI configurateur** (web + mobile) au-dessus de ce moteur — saisie en ~3 min.
 3. **Typologies** : appentis, puis croupe (introduit le besoin de solide 3D).
 4. **Interop** : export BTLx (pilotage machine atelier).
 5. **IA d'assistance** : relevé (photogrammétrie / orthophoto IGN), lecture de plan PDF.
