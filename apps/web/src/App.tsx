@@ -13,8 +13,11 @@ type Resultat =
   | { ok: true; etude: ReturnType<typeof etudier> }
   | { ok: false; erreurs: Alerte[] };
 
+type Onglet = "form" | "resultats";
+
 export default function App() {
   const [projet, setProjet] = useState<ParametresProjet>(() => projetParDefaut());
+  const [onglet, setOnglet] = useState<Onglet>("form");
 
   // Le moteur est synchrone et bon marché : on recalcule à chaque changement.
   const resultat = useMemo<Resultat>(() => {
@@ -36,12 +39,38 @@ export default function App() {
         </p>
       </header>
 
+      {/* Bascule visible uniquement sur mobile (CSS) */}
+      <nav className="tabs-mobile" role="tablist" aria-label="Affichage">
+        <button
+          role="tab"
+          aria-selected={onglet === "form"}
+          className={onglet === "form" ? "actif" : ""}
+          onClick={() => setOnglet("form")}
+        >
+          Paramètres
+        </button>
+        <button
+          role="tab"
+          aria-selected={onglet === "resultats"}
+          className={onglet === "resultats" ? "actif" : ""}
+          onClick={() => setOnglet("resultats")}
+        >
+          Résultats{resultat.ok ? "" : " ⚠"}
+        </button>
+      </nav>
+
       <main className="layout">
-        <section className="colonne-form" aria-label="Paramètres">
+        <section
+          className={`colonne-form${onglet === "form" ? " onglet-actif" : ""}`}
+          aria-label="Paramètres"
+        >
           <ParamForm projet={projet} onChange={setProjet} />
         </section>
 
-        <section className="colonne-resultats" aria-label="Résultats">
+        <section
+          className={`colonne-resultats${onglet === "resultats" ? " onglet-actif" : ""}`}
+          aria-label="Résultats"
+        >
           {resultat.ok ? (
             <Resultats etude={resultat.etude} />
           ) : (

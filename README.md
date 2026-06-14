@@ -72,6 +72,24 @@ imprimable en PDF depuis le navigateur), `nomenclature.csv`, `debit.csv`, `devis
 > (paramètres-propriétés, enums, namespaces) — on s'en tient au sous-ensemble « types
 > effaçables ». L'app web ajoute Vite + React (esbuild autorisé via `pnpm-workspace.yaml`).
 
+## Déploiement (app web)
+
+L'app est une **SPA statique** (aucun backend) : le build `apps/web/dist` se publie
+sur n'importe quel hébergeur statique. Les chemins d'assets sont relatifs (`base: "./"`),
+donc ça marche à la racine d'un domaine comme dans un sous-dossier.
+
+- **Netlify** : brancher le dépôt — `netlify.toml` (racine) fournit la commande de build
+  et `publish = apps/web/dist`. Rien d'autre à configurer.
+- **Vercel** : *Root Directory* = `apps/web`, *Build Command* = `pnpm build`,
+  *Output Directory* = `dist` (preset Vite).
+- **Manuel** : `pnpm build:web` puis déposer le contenu de `apps/web/dist/`.
+
+> La publication effective (lier le dépôt à l'hébergeur) nécessite ton compte —
+> c'est une action sortante à faire de ton côté. Le projet est prêt à l'emploi.
+
+Un **manifest** (`manifest.webmanifest` + icône) permet l'« ajout à l'écran d'accueil »
+sur mobile (affichage plein écran), sans service worker (pas de mode hors-ligne à ce stade).
+
 ## Architecture du moteur
 
 ```

@@ -128,6 +128,7 @@ function Nombre(props: { label: string; value: number; step?: number; onChange: 
       <span>{props.label}</span>
       <input
         type="number"
+        inputMode="decimal"
         value={Number.isFinite(props.value) ? props.value : 0}
         step={props.step ?? 1}
         onChange={(e) => {

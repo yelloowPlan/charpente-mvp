@@ -1,0 +1,13 @@
+{
+  "name": "Configurateur de charpente",
+  "short_name": "Charpente",
+  "description": "Géométrie, débit et devis de charpente en direct.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#b45309",
+  "icons": [
+    { "src": "./icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" }
+  ]
+}

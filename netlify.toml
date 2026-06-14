@@ -1,0 +1,8 @@
+# Déploiement Netlify du configurateur (app web statique).
+# Brancher le dépôt sur Netlify : ces réglages suffisent (aucune variable requise).
+[build]
+  command = "pnpm install && pnpm --filter @charpente/web build"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION = "22.18.0"
