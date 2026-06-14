@@ -52,7 +52,6 @@ export function chiffrerDevis(
   debit: PlanDebit,
 ): Devis {
   const prix = p.prix;
-  const lblLiteau = labelSection(p.charpente.sections.liteau);
   const lblContre = labelSection(p.charpente.sections.contreLiteau);
 
   let volumeStructureM3 = 0;

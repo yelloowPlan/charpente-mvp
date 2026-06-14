@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "charpente-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@charpente/web", "dev"],
+      "port": 5173
+    }
+  ]
+}

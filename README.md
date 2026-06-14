@@ -1,12 +1,18 @@
 # charpente-mvp
 
-Moteur paramétrique de charpente — **cœur déterministe** d'un futur logiciel métier
-pour charpentiers / couvreurs. Transforme quelques paramètres en :
-**géométrie → nomenclature → débit optimisé → devis**, avec traçabilité complète.
+Logiciel métier de charpente — **monorepo** : un moteur paramétrique déterministe
+et un configurateur web par-dessus. Transforme quelques paramètres en :
+**géométrie → nomenclature → débit optimisé → devis**, avec traçabilité complète
+et livrables (HTML imprimable + CSV).
 
-> Étape **Prototype** de la roadmap. Bibliothèque TypeScript pure, sans UI ni base
-> de données : tout est vérifiable par les tests. L'UI (configurateur web/mobile)
-> viendra *après* que le moteur soit prouvé juste.
+```
+packages/moteur   @charpente/moteur  — cœur TypeScript pur (zéro dépendance runtime)
+apps/web          @charpente/web     — configurateur Vite + React (le moteur tourne dans le navigateur)
+```
+
+> Le moteur est **framework-agnostique** : il est consommé par l'app web aujourd'hui,
+> et portable vers Next.js / mobile plus tard sans réécriture. L'UI ne fait que piloter
+> le moteur et afficher ses résultats — toute la logique métier vit dans `packages/moteur`.
 
 ## Périmètre (volontairement borné)
 
@@ -48,21 +54,23 @@ Prérequis : **Node ≥ 22.18** (le moteur tourne en TypeScript natif, sans buil
 
 ```bash
 pnpm install
-pnpm test          # 57 tests : valeurs exactes + invariants + exports
-pnpm type-check    # TypeScript strict (tsc --noEmit)
-pnpm demo          # rapport texte sur le projet de référence (10 × 8 m, pente 45°)
-pnpm export        # écrit les livrables dans out/ (HTML imprimable + 3 CSV)
+pnpm test          # tous les packages : 57 tests moteur (valeurs exactes + invariants + exports)
+pnpm type-check    # tous les packages (tsc --noEmit strict)
+pnpm dev           # lance le configurateur web (Vite, http://localhost:5173)
+pnpm build:web     # build de production de l'app web
+pnpm demo          # moteur : rapport texte sur le projet de référence (10 × 8 m, pente 45°)
+pnpm export        # moteur : écrit les livrables dans packages/moteur/out/ (HTML + 3 CSV)
 ```
 
 Les livrables (`out/`) : `etude.html` (devis + nomenclature + débit + **schéma de coupe SVG**,
 imprimable en PDF depuis le navigateur), `nomenclature.csv`, `debit.csv`, `devis.csv`
 (séparateur `;`, décimales virgule, BOM UTF-8 → Excel/LibreOffice FR).
 
-> **Stack volontairement minimale** : aucune dépendance runtime, aucun bundler.
-> Node 24 exécute les `.ts` directement (strip de types) et le runner de tests est
-> `node:test` intégré. La seule dépendance de dev est `typescript` (pour `type-check`).
-> Conséquence pratique : `strip-only` interdit les transformations TS (paramètres-
-> propriétés, enums, namespaces) — on s'en tient au sous-ensemble « types effaçables ».
+> **Moteur à stack minimale** : `@charpente/moteur` n'a **aucune dépendance runtime**.
+> Node ≥ 22.18 exécute les `.ts` directement (strip de types) et le runner de tests est
+> `node:test` intégré. Conséquence pratique : `strip-only` interdit les transformations TS
+> (paramètres-propriétés, enums, namespaces) — on s'en tient au sous-ensemble « types
+> effaçables ». L'app web ajoute Vite + React (esbuild autorisé via `pnpm-workspace.yaml`).
 
 ## Architecture du moteur
 
@@ -81,16 +89,23 @@ chiffrerDevis()                 → lignes HT, TVA, TTC (centimes)
 etudier()  ── orchestre tout et agrège les alertes
 ```
 
+Dans `packages/moteur/` :
 - `src/domain/` — modèle de données (`types.ts`) + projet de référence (`defaults.ts`)
 - `src/engine/` — géométrie, structure, nomenclature, débit, devis, orchestrateur
 - `src/export/` — livrables purs (CSV, schéma de coupe SVG, HTML imprimable)
 - `src/cli.ts` — démo (rapport texte) · `src/export-cli.ts` — génération des livrables
 - `test/` — suite `node:test`
 
+Dans `apps/web/` (Vite + React) :
+- `src/App.tsx` — état du projet + recalcul live via `etudier()`
+- `src/components/ParamForm.tsx` — formulaire paramétrique
+- `src/components/Resultats.tsx` — géométrie, coupe SVG, tables, devis, exports
+- composants purement présentationnels (portables vers un autre framework)
+
 ## Prochaines étapes (roadmap)
 
 1. ~~**Export** (HTML imprimable + CSV + schéma de coupe SVG)~~ ✅ fait.
-2. **UI configurateur** (web + mobile) au-dessus de ce moteur — saisie en ~3 min.
+2. ~~**UI configurateur** web (formulaire + résultats live + export)~~ ✅ fait (`apps/web`).
 3. **Typologies** : appentis, puis croupe (introduit le besoin de solide 3D).
 4. **Interop** : export BTLx (pilotage machine atelier).
 5. **IA d'assistance** : relevé (photogrammétrie / orthophoto IGN), lecture de plan PDF.

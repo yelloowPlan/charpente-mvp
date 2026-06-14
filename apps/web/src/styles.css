@@ -1,0 +1,228 @@
+:root {
+  --encre: #1f2937;
+  --gris: #64748b;
+  --trait: #e2e8f0;
+  --fond: #f8fafc;
+  --accent: #b45309;
+  --accent-fonce: #92400e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--encre);
+  background: var(--fond);
+  line-height: 1.45;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.entete h1 {
+  font-size: 24px;
+  margin: 0 0 4px;
+}
+.sous-titre {
+  color: var(--gris);
+  margin: 0 0 20px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 820px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- formulaire ---- */
+.colonne-form {
+  position: sticky;
+  top: 20px;
+}
+.form fieldset {
+  border: 1px solid var(--trait);
+  border-radius: 10px;
+  background: #fff;
+  margin: 0 0 14px;
+  padding: 10px 14px 14px;
+}
+.form legend {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--gris);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0 6px;
+}
+.champ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  padding: 4px 0;
+}
+.champ > span {
+  color: var(--encre);
+}
+.champ input[type="number"],
+.champ select {
+  width: 120px;
+  padding: 5px 8px;
+  border: 1px solid var(--trait);
+  border-radius: 6px;
+  font: inherit;
+  text-align: right;
+}
+.champ select {
+  text-align: left;
+}
+.champ-case {
+  justify-content: flex-start;
+}
+.champ-case input {
+  width: auto;
+}
+
+/* ---- résultats ---- */
+.bloc {
+  background: #fff;
+  border: 1px solid var(--trait);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.bloc h2 {
+  font-size: 15px;
+  margin: 0 0 12px;
+  border-bottom: 2px solid var(--trait);
+  padding-bottom: 6px;
+}
+
+.cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.carte {
+  background: var(--fond);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.carte-titre {
+  font-size: 12px;
+  color: var(--gris);
+}
+.carte-valeur {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.coupe svg {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--trait);
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--trait);
+}
+th {
+  color: var(--gris);
+  font-weight: 600;
+}
+td.num,
+th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.totaux {
+  margin-top: 10px;
+  text-align: right;
+  font-size: 14px;
+}
+.totaux .ttc {
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.alertes {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+}
+.alertes li {
+  padding: 4px 0;
+}
+.al-attention {
+  color: var(--accent-fonce);
+}
+.al-bloquant {
+  color: #b91c1c;
+}
+
+.export-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.export-bar button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.export-bar button:hover {
+  background: var(--accent-fonce);
+}
+
+.erreurs {
+  border-color: #fca5a5;
+}
+.erreurs h2 {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.pied {
+  margin-top: 24px;
+  color: var(--gris);
+  font-size: 12px;
+  border-top: 1px solid var(--trait);
+  padding-top: 12px;
+}

@@ -1,20 +1,14 @@
 {
-  "name": "charpente-mvp",
+  "name": "charpente-monorepo",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "description": "Moteur paramétrique de charpente — géométrie, nomenclature, débit, devis (MVP, toiture 2 pans / charpente traditionnelle à pannes).",
-  "engines": {
-    "node": ">=22.18.0"
-  },
+  "description": "Monorepo charpente : moteur paramétrique (@charpente/moteur) + configurateur web (@charpente/web).",
   "scripts": {
-    "demo": "node src/cli.ts",
-    "export": "node src/export-cli.ts",
-    "test": "node --test \"test/**/*.test.ts\"",
-    "type-check": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.0",
-    "typescript": "^5.7.2"
+    "test": "pnpm -r --if-present test",
+    "type-check": "pnpm -r --if-present type-check",
+    "demo": "pnpm --filter @charpente/moteur demo",
+    "export": "pnpm --filter @charpente/moteur export",
+    "dev": "pnpm --filter @charpente/web dev",
+    "build:web": "pnpm --filter @charpente/web build"
   }
 }

@@ -1,0 +1,23 @@
+{
+  "name": "@charpente/moteur",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Moteur paramétrique de charpente — géométrie, nomenclature, débit, devis, exports.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "demo": "node src/cli.ts",
+    "export": "node src/export-cli.ts",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
+  }
+}

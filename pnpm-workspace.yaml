@@ -1,0 +1,8 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+
+# esbuild (via Vite) embarque son binaire de plateforme : on autorise son script
+# de build pour que `pnpm install` reste propre (exit 0).
+allowBuilds:
+  esbuild: true
