@@ -85,6 +85,9 @@ body {
     font-size: 16px;
     padding: 8px;
   }
+  .champ-large input {
+    font-size: 16px;
+  }
   .export-bar button {
     flex: 1 1 100%;
     padding: 12px;
@@ -202,6 +205,41 @@ body {
 .liste-projets .suppr:hover {
   color: #b91c1c;
   border-color: #fca5a5;
+}
+
+/* ---- profil entreprise ---- */
+.form-entreprise .toggle-entreprise {
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--gris);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 0;
+}
+.champs-entreprise {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.champ-large {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+.champ-large span {
+  color: var(--gris);
+}
+.champ-large input {
+  padding: 6px 8px;
+  border: 1px solid var(--trait);
+  border-radius: 6px;
+  font: inherit;
 }
 
 /* ---- résultats ---- */

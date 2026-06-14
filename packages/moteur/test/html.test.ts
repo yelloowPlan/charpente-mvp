@@ -51,4 +51,49 @@ describe("export HTML", () => {
   it("inclut la date de génération quand fournie", () => {
     assert.ok(html.includes("Généré le 2026-06-14"));
   });
+
+  it("n'affiche pas d'en-tête entreprise quand elle est absente", () => {
+    assert.ok(!html.includes('<div class="entete-entreprise">'));
+  });
+
+  it("affiche l'en-tête entreprise quand elle est renseignée", () => {
+    const h = etudeVersHtml(etude, {
+      entreprise: {
+        raisonSociale: "Charpentes Dupont",
+        adresse: "12 rue des Compagnons",
+        codePostal: "73000",
+        ville: "Chambéry",
+        siret: "12345678900012",
+        telephone: "06 00 00 00 00",
+        email: "contact@dupont.fr",
+      },
+    });
+    assert.ok(h.includes('<div class="entete-entreprise">'));
+    assert.ok(h.includes("Charpentes Dupont"));
+    assert.ok(h.includes("SIRET 12345678900012"));
+    assert.ok(h.includes("73000 Chambéry"));
+  });
+
+  it("n'affiche pas l'en-tête si tous les champs entreprise sont vides", () => {
+    const h = etudeVersHtml(etude, {
+      entreprise: { raisonSociale: "", adresse: "", codePostal: "", ville: "", siret: "", telephone: "", email: "" },
+    });
+    assert.ok(!h.includes('<div class="entete-entreprise">'));
+  });
+
+  it("échappe le HTML dans les champs entreprise", () => {
+    const h = etudeVersHtml(etude, {
+      entreprise: {
+        raisonSociale: "<script>x</script>",
+        adresse: "", codePostal: "", ville: "", siret: "", telephone: "", email: "",
+      },
+    });
+    assert.ok(!h.includes("<script>x</script>"));
+    assert.ok(h.includes("&lt;script&gt;"));
+  });
+
+  it("affiche la référence chantier à côté du titre", () => {
+    const h = etudeVersHtml(etude, { referenceChantier: "Maison Martin" });
+    assert.ok(h.includes("Étude de charpente — Maison Martin"));
+  });
 });

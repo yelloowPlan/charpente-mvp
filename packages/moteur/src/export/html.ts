@@ -1,4 +1,5 @@
 import type { Etude } from "../engine/etude.ts";
+import type { Entreprise } from "../domain/types.ts";
 import { coupeTransversaleSvg } from "./schema-svg.ts";
 
 /**
@@ -9,6 +10,10 @@ import { coupeTransversaleSvg } from "./schema-svg.ts";
 export interface OptionsHtml {
   /** date de génération (ISO ou libre) à afficher en pied — optionnel pour rester déterministe en test */
   dateGeneration?: string;
+  /** en-tête entreprise (raison sociale, adresse, SIRET…) en haut du devis */
+  entreprise?: Entreprise;
+  /** nom du chantier, affiché à côté du titre */
+  referenceChantier?: string;
 }
 
 const esc = (s: string): string =>
@@ -17,6 +22,23 @@ const esc = (s: string): string =>
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+
+/** En-tête entreprise (rendu seulement si au moins un champ est renseigné). */
+function enteteEntreprise(e?: Entreprise): string {
+  if (!e) return "";
+  const champs = [e.raisonSociale, e.adresse, e.codePostal, e.ville, e.siret, e.telephone, e.email];
+  if (champs.every((c) => !c || c.trim() === "")) return "";
+  const villeLigne = [e.codePostal, e.ville].filter((x) => x && x.trim()).join(" ");
+  const contact = [e.telephone, e.email].filter((x) => x && x.trim()).join(" · ");
+  const lignes = [
+    e.raisonSociale ? `<strong>${esc(e.raisonSociale)}</strong>` : "",
+    e.adresse ? esc(e.adresse) : "",
+    villeLigne ? esc(villeLigne) : "",
+    e.siret ? `SIRET ${esc(e.siret)}` : "",
+    contact ? esc(contact) : "",
+  ].filter((l) => l !== "");
+  return `<div class="entete-entreprise">${lignes.map((l) => `<div>${l}</div>`).join("")}</div>`;
+}
 
 const eur = (cents: number): string =>
   (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
@@ -114,11 +136,14 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
   .al-attention { color: #92400e; }
   .al-bloquant { color: #b91c1c; }
   .pied { margin-top: 28px; color: var(--gris); font-size: 12px; border-top: 1px solid var(--trait); padding-top: 10px; }
+  .entete-entreprise { font-size: 13px; line-height: 1.4; margin: 0 0 16px; padding-bottom: 12px; border-bottom: 2px solid var(--encre); }
+  .entete-entreprise strong { font-size: 16px; }
   @media print { body { margin: 0; max-width: none; } h2 { page-break-after: avoid; } tr { page-break-inside: avoid; } }
 </style>
 </head>
 <body>
-  <h1>Étude de charpente</h1>
+  ${enteteEntreprise(options.entreprise)}
+  <h1>Étude de charpente${options.referenceChantier ? ` — ${esc(options.referenceChantier)}` : ""}</h1>
   <p class="meta">Bâtiment ${nb(p.batiment.longueurM)} × ${nb(p.batiment.largeurM)} m ·
      pente ${p.toiture.penteDeg}° · couverture ${esc(p.toiture.couverture.type)} ·
      essence ${esc(p.essence.classe)}</p>

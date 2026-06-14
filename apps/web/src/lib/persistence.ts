@@ -1,4 +1,4 @@
-import type { ParametresProjet } from "@charpente/moteur";
+import type { ParametresProjet, Entreprise } from "@charpente/moteur";
 
 /**
  * Persistance locale des projets (localStorage).
@@ -123,6 +123,45 @@ export function chargerBrouillon(store: Magasin): ParametresProjet | null {
     if (!brut) return null;
     const p: unknown = JSON.parse(brut);
     return estProjetValide(p) ? p : null;
+  } catch {
+    return null;
+  }
+}
+
+/* ---------- profil entreprise (en-tête de devis) ---------- */
+
+const CLE_ENTREPRISE = "charpente.entreprise.v1";
+const CHAMPS_ENTREPRISE = [
+  "raisonSociale",
+  "adresse",
+  "codePostal",
+  "ville",
+  "siret",
+  "telephone",
+  "email",
+] as const;
+
+/** Entreprise « vide » (tous champs à la chaîne vide). */
+export function entrepriseVide(): Entreprise {
+  return { raisonSociale: "", adresse: "", codePostal: "", ville: "", siret: "", telephone: "", email: "" };
+}
+
+function estEntreprise(e: unknown): e is Entreprise {
+  if (typeof e !== "object" || e === null) return false;
+  const o = e as Record<string, unknown>;
+  return CHAMPS_ENTREPRISE.every((k) => typeof o[k] === "string");
+}
+
+export function sauverEntreprise(store: Magasin, e: Entreprise): void {
+  ecrire(store, CLE_ENTREPRISE, e);
+}
+
+export function chargerEntreprise(store: Magasin): Entreprise | null {
+  try {
+    const brut = store.getItem(CLE_ENTREPRISE);
+    if (!brut) return null;
+    const e: unknown = JSON.parse(brut);
+    return estEntreprise(e) ? e : null;
   } catch {
     return null;
   }

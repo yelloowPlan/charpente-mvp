@@ -4,11 +4,13 @@ import {
   etudier,
   ErreurValidation,
   type ParametresProjet,
+  type Entreprise,
   type Alerte,
 } from "@charpente/moteur";
 import { ParamForm } from "./components/ParamForm.tsx";
 import { Resultats } from "./components/Resultats.tsx";
 import { GestionProjets } from "./components/GestionProjets.tsx";
+import { EntrepriseForm } from "./components/EntrepriseForm.tsx";
 import {
   magasinNavigateur,
   chargerBrouillon,
@@ -16,6 +18,9 @@ import {
   listerProjets,
   enregistrerProjet,
   supprimerProjet,
+  chargerEntreprise,
+  sauverEntreprise,
+  entrepriseVide,
   type ProjetEnregistre,
 } from "./lib/persistence.ts";
 
@@ -34,12 +39,20 @@ export default function App() {
   );
   const [projets, setProjets] = useState<ProjetEnregistre[]>(() => listerProjets(store));
   const [nom, setNom] = useState("");
+  const [entreprise, setEntreprise] = useState<Entreprise>(
+    () => chargerEntreprise(store) ?? entrepriseVide(),
+  );
   const [onglet, setOnglet] = useState<Onglet>("form");
 
   // Auto-save du projet de travail (survit au rafraîchissement).
   useEffect(() => {
     sauverBrouillon(store, projet);
   }, [store, projet]);
+
+  // Auto-save du profil entreprise.
+  useEffect(() => {
+    sauverEntreprise(store, entreprise);
+  }, [store, entreprise]);
 
   // Le moteur est synchrone et bon marché : on recalcule à chaque changement.
   const resultat = useMemo<Resultat>(() => {
@@ -108,6 +121,7 @@ export default function App() {
             onDelete={handleDelete}
           />
           <ParamForm projet={projet} onChange={setProjet} />
+          <EntrepriseForm entreprise={entreprise} onChange={setEntreprise} />
         </section>
 
         <section
@@ -115,7 +129,11 @@ export default function App() {
           aria-label="Résultats"
         >
           {resultat.ok ? (
-            <Resultats etude={resultat.etude} />
+            <Resultats
+              etude={resultat.etude}
+              entreprise={entreprise}
+              referenceChantier={nom.trim()}
+            />
           ) : (
             <div className="bloc erreurs" role="alert">
               <h2>Paramètres invalides</h2>

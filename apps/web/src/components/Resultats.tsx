@@ -1,5 +1,6 @@
 import {
   type Etude,
+  type Entreprise,
   coupeTransversaleSvg,
   etudeVersHtml,
   nomenclatureVersCsv,
@@ -11,9 +12,11 @@ import { telecharger } from "../lib/telechargement.ts";
 
 interface Props {
   etude: Etude;
+  entreprise?: Entreprise;
+  referenceChantier?: string;
 }
 
-export function Resultats({ etude }: Props) {
+export function Resultats({ etude, entreprise, referenceChantier }: Props) {
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
 
   const svg = coupeTransversaleSvg({
@@ -24,11 +27,13 @@ export function Resultats({ etude }: Props) {
   });
 
   const dateGeneration = new Date().toISOString().slice(0, 10);
+  const htmlEtude = () =>
+    etudeVersHtml(etude, { dateGeneration, entreprise, referenceChantier });
 
   return (
     <div className="resultats">
       <div className="export-bar">
-        <button onClick={() => telecharger("etude-charpente.html", etudeVersHtml(etude, { dateGeneration }), "text/html")}>
+        <button onClick={() => telecharger("etude-charpente.html", htmlEtude(), "text/html")}>
           ⬇ Étude HTML (imprimable)
         </button>
         <button onClick={() => telecharger("devis.csv", devisVersCsv(devis), "text/csv")}>⬇ Devis CSV</button>

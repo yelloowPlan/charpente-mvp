@@ -151,3 +151,14 @@ export interface Alerte {
   niveau: NiveauAlerte;
   message: string;
 }
+
+/** Identité de l'entreprise, pour l'en-tête des devis (tous champs optionnels). */
+export interface Entreprise {
+  raisonSociale: string;
+  adresse: string;
+  codePostal: string;
+  ville: string;
+  siret: string;
+  telephone: string;
+  email: string;
+}

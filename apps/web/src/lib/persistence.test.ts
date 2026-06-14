@@ -7,6 +7,9 @@ import {
   supprimerProjet,
   sauverBrouillon,
   chargerBrouillon,
+  sauverEntreprise,
+  chargerEntreprise,
+  entrepriseVide,
 } from "./persistence.ts";
 
 /** Faux magasin en mémoire (pas de navigateur requis). */
@@ -81,5 +84,27 @@ describe("persistence — brouillon", () => {
     const s = fauxMagasin();
     s.setItem("charpente.brouillon.v1", JSON.stringify({ nimporte: "quoi" }));
     expect(chargerBrouillon(s)).toBeNull();
+  });
+});
+
+describe("persistence — entreprise", () => {
+  it("entrepriseVide a tous les champs vides", () => {
+    const e = entrepriseVide();
+    expect(Object.values(e).every((v) => v === "")).toBe(true);
+  });
+
+  it("aller-retour du profil entreprise", () => {
+    const s = fauxMagasin();
+    expect(chargerEntreprise(s)).toBeNull();
+    sauverEntreprise(s, { ...entrepriseVide(), raisonSociale: "Charpentes Dupont", siret: "123" });
+    const recharge = chargerEntreprise(s);
+    expect(recharge?.raisonSociale).toBe("Charpentes Dupont");
+    expect(recharge?.siret).toBe("123");
+  });
+
+  it("ignore un profil corrompu / incomplet", () => {
+    const s = fauxMagasin();
+    s.setItem("charpente.entreprise.v1", JSON.stringify({ raisonSociale: "X" }));
+    expect(chargerEntreprise(s)).toBeNull();
   });
 });

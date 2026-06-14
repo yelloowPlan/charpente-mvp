@@ -19,6 +19,10 @@ describe("App — rendu statique du projet par défaut", () => {
     expect(html).toContain("Entraxe chevrons (m)");
   });
 
+  it("affiche le panneau profil entreprise (en-tête de devis)", () => {
+    expect(html).toContain("Mon entreprise");
+  });
+
   it("affiche les résultats : géométrie, nomenclature, coupe SVG", () => {
     expect(html).toContain("Surface toiture");
     expect(html).toContain("Chevron");
