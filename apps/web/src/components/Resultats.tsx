@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import {
   type Etude,
   type Entreprise,
@@ -69,6 +69,21 @@ export function Resultats({
   const planSvg = useMemo(() => planMasseSvg(p, g), [p, g]);
   const couv = useMemo(() => metreCouverture(p, g), [p, g]);
   const [etape, setEtape] = useState(1);
+  const [animation, setAnimation] = useState(false);
+
+  // Animation « construction » : ossature → lattage → couverture.
+  useEffect(() => {
+    if (!animation) return;
+    setEtape(1);
+    const t1 = setTimeout(() => setEtape(2), 900);
+    const t2 = setTimeout(() => setEtape(3), 1800);
+    const t3 = setTimeout(() => setAnimation(false), 2700);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [animation]);
 
   const dateGeneration = new Date().toISOString().slice(0, 10);
   const dateDevis = new Date().toLocaleDateString("fr-FR");
@@ -136,6 +151,15 @@ export function Resultats({
               <span className="etape-num">{i + 1}</span> {label}
             </button>
           ))}
+          <button
+            type="button"
+            className="animer"
+            disabled={animation}
+            onClick={() => setAnimation(true)}
+            title="Construire le toit étape par étape"
+          >
+            ▶ Animer
+          </button>
         </div>
         <div className="vue3d">
           <Suspense fallback={<div className="vue3d-fallback">Chargement de la vue 3D…</div>}>

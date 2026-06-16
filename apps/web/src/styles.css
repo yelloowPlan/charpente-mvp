@@ -488,6 +488,20 @@ body {
   background: var(--accent);
   color: #fff;
 }
+.etapes .animer {
+  flex: 0 0 auto;
+  min-width: auto;
+  background: var(--encre);
+  color: #fff;
+  border-color: var(--encre);
+}
+.etapes .animer:hover:not(:disabled) {
+  background: var(--encre-doux);
+}
+.etapes .animer:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 
 .vue3d {
   height: 400px;
