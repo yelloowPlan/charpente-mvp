@@ -12,6 +12,12 @@ export { genererNomenclature, type ResultatNomenclature } from "./engine/nomencl
 export { planifierDebit, type PlanDebit, type PlanSection, type BarreDebitee } from "./engine/debit.ts";
 export { chiffrerDevis, type Devis, type LigneDevis } from "./engine/devis.ts";
 export { etudier, validerProjet, ErreurValidation, type Etude } from "./engine/etude.ts";
+export {
+  genererOssature3D,
+  type Poutre3D,
+  type Point3,
+  type RolePoutre,
+} from "./engine/ossature.ts";
 // Exports / livrables
 export { nomenclatureVersCsv, debitVersCsv, devisVersCsv } from "./export/csv.ts";
 export { coupeTransversaleSvg, type ParamsCoupe } from "./export/schema-svg.ts";

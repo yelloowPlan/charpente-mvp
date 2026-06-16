@@ -1,8 +1,9 @@
+import { lazy, Suspense, useMemo } from "react";
 import {
   type Etude,
   type Entreprise,
   type Client,
-  coupeTransversaleSvg,
+  genererOssature3D,
   etudeVersHtml,
   nomenclatureVersCsv,
   debitVersCsv,
@@ -10,6 +11,9 @@ import {
 } from "@charpente/moteur";
 import { euros, nb } from "../lib/format.ts";
 import { telecharger } from "../lib/telechargement.ts";
+
+// Chargé à la demande : la stack 3D (three.js) reste hors du bundle initial.
+const Vue3D = lazy(() => import("./Vue3D.tsx"));
 
 interface Props {
   etude: Etude;
@@ -30,13 +34,10 @@ export function Resultats({
 }: Props) {
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
 
-  const svg = coupeTransversaleSvg({
-    largeurM: p.batiment.largeurM,
-    hauteurFaitageM: g.hauteurFaitageM,
-    penteDeg: p.toiture.penteDeg,
-    nbPannesIntermParPan: nom.nbPannesIntermediairesParPan,
-    nbPans: g.nbPans,
-  });
+  const poutres = useMemo(
+    () => genererOssature3D(p, g, nom.nbPannesIntermediairesParPan),
+    [p, g, nom.nbPannesIntermediairesParPan],
+  );
 
   const dateGeneration = new Date().toISOString().slice(0, 10);
   const dateDevis = new Date().toLocaleDateString("fr-FR");
@@ -77,7 +78,17 @@ export function Resultats({
           <Carte titre="Hauteur faîtage" valeur={`${nb(g.hauteurFaitageM, 3)} m`} />
           <Carte titre="Portée chevron adm." valeur={`${nb(nom.porteeAdmissibleChevronM, 2)} m`} />
         </div>
-        <div className="coupe" dangerouslySetInnerHTML={{ __html: svg }} />
+        <div className="vue3d">
+          <Suspense fallback={<div className="vue3d-fallback">Chargement de la vue 3D…</div>}>
+            <Vue3D
+              poutres={poutres}
+              largeurM={p.batiment.largeurM}
+              hauteurM={g.hauteurFaitageM}
+              longueurM={p.batiment.longueurM}
+            />
+          </Suspense>
+        </div>
+        <p className="vue3d-aide">Glissez pour pivoter · molette pour zoomer</p>
       </div>
 
       <div className="bloc">

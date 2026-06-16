@@ -356,14 +356,30 @@ body {
   font-variant-numeric: tabular-nums;
   color: var(--encre);
 }
-.coupe svg {
-  display: block;
-  width: 100%;
-  max-width: 460px;
-  height: auto;
-  margin: 0 auto;
+.vue3d {
+  height: 400px;
   border: 1px solid var(--trait);
   border-radius: var(--rayon-sm);
+  overflow: hidden;
+  background: var(--fond);
+}
+.vue3d canvas {
+  display: block;
+  touch-action: none;
+}
+.vue3d-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--gris);
+  font-size: 14px;
+}
+.vue3d-aide {
+  text-align: center;
+  color: var(--gris-clair);
+  font-size: 12px;
+  margin: 10px 0 0;
 }
 
 table {

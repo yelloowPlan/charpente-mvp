@@ -10,5 +10,7 @@ export default defineConfig({
   base: "./",
   plugins: [react()],
   server: { port: 5173, strictPort: true },
+  // La 3D (three.js) est isolée dans un chunk chargé à la demande : pas d'alerte.
+  build: { chunkSizeWarningLimit: 1200 },
   test: { environment: "node" },
 });

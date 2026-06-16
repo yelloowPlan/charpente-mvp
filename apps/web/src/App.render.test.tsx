@@ -27,11 +27,11 @@ describe("App — rendu statique du projet par défaut", () => {
     expect(html).toContain("Client &amp; devis");
   });
 
-  it("affiche les résultats : géométrie, nomenclature, coupe SVG", () => {
+  it("affiche les résultats : géométrie, nomenclature et la vue 3D", () => {
     expect(html).toContain("Surface toiture");
     expect(html).toContain("Chevron");
-    expect(html).toContain("Coupe transversale"); // SVG embarqué rendu
-    expect(html).toContain("<svg");
+    // La vue 3D est chargée à la demande : en rendu serveur, son fallback s'affiche.
+    expect(html).toContain("vue 3D");
   });
 
   it("affiche le devis et son total TTC", () => {
