@@ -57,10 +57,26 @@ export function validerProjet(p: ParametresProjet): Alerte[] {
   if (p.debit.barresCommercialesM.length === 0) {
     bloquant("Au moins une longueur commerciale de barre doit être définie.");
   }
+  if (p.debit.barresCommercialesM.some((b) => !(b > 0))) {
+    bloquant("Toutes les longueurs commerciales de barres doivent être > 0.");
+  }
   if (!(p.debit.kerfMm >= 0)) bloquant("Le trait de scie (kerf) doit être ≥ 0.");
 
   // Module élastique plausible
   if (!(p.essence.moduleEMpa > 0)) bloquant("Module d'élasticité (E) doit être > 0.");
+  if (!(p.charges.neigeKNm2 >= 0)) bloquant("La charge de neige doit être ≥ 0.");
+
+  // Prix : aucun montant négatif (un prix nul est toléré)
+  const prixNegatif =
+    p.essence.prixM3Cents < 0 ||
+    p.prix.liteauMlCents < 0 ||
+    p.prix.contreLiteauMlCents < 0 ||
+    p.prix.couvertureM2Cents < 0 ||
+    p.prix.quincaillerieM2Cents < 0 ||
+    p.prix.mainOeuvreHeureCents < 0 ||
+    p.prix.heuresParM2 < 0 ||
+    p.prix.tauxTvaPct < 0;
+  if (prixNegatif) bloquant("Les prix et taux ne peuvent pas être négatifs.");
 
   // Avertissements non bloquants
   if (p.charpente.entraxeFermeM > p.batiment.longueurM) {
@@ -90,7 +106,7 @@ export function etudier(p: ParametresProjet): Etude {
     p.debit.barresCommercialesM,
     p.debit.kerfMm,
   );
-  const devis = chiffrerDevis(p, geometrie, debit);
+  const devis = chiffrerDevis(p, geometrie, nomenclature.elements, debit);
 
   // Agrégation des alertes : validation (hors bloquants) + débit + disclaimer.
   const alertes: Alerte[] = [

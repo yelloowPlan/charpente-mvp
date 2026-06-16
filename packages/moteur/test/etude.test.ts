@@ -32,6 +32,24 @@ describe("validerProjet — règles bloquantes", () => {
     const p = projetParDefaut({ ...base, batiment: { ...base.batiment, largeurM: 0 } });
     assert.ok(validerProjet(p).some((a) => a.niveau === "bloquant"));
   });
+
+  it("rejette une longueur de barre commerciale ≤ 0", () => {
+    const base = projetParDefaut();
+    const p = projetParDefaut({ ...base, debit: { ...base.debit, barresCommercialesM: [4, 0, 6] } });
+    assert.ok(validerProjet(p).some((a) => a.message.includes("barres")));
+  });
+
+  it("rejette un prix négatif", () => {
+    const base = projetParDefaut();
+    const p = projetParDefaut({ ...base, prix: { ...base.prix, couvertureM2Cents: -100 } });
+    assert.ok(validerProjet(p).some((a) => a.message.includes("négatif")));
+  });
+
+  it("rejette une charge de neige négative", () => {
+    const base = projetParDefaut();
+    const p = projetParDefaut({ ...base, charges: { neigeKNm2: -1 } });
+    assert.ok(validerProjet(p).some((a) => a.niveau === "bloquant"));
+  });
 });
 
 describe("etudier — pipeline complet", () => {

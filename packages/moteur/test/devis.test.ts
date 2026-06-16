@@ -12,7 +12,7 @@ function devisDeReference() {
   const g = calculerGeometrie(p);
   const nom = genererNomenclature(p, g);
   const debit = planifierDebit(nom.elements, p.debit.barresCommercialesM, p.debit.kerfMm);
-  return { p, g, devis: chiffrerDevis(p, g, debit) };
+  return { p, g, devis: chiffrerDevis(p, g, nom.elements, debit) };
 }
 
 describe("chiffrerDevis — cohérence comptable", () => {
@@ -35,6 +35,11 @@ describe("chiffrerDevis — cohérence comptable", () => {
     }
   });
 
+  it("golden : TTC de référence inchangé (16 841,89 €)", () => {
+    // Verrou de non-régression : le refactor de répartition ne doit pas bouger le total.
+    assert.equal(devis.totalTtcCents, 1684189);
+  });
+
   it("la ligne main-d'œuvre = heuresParM2 × surface × taux horaire", () => {
     const mo = devis.lignes.find((l) => l.libelle.startsWith("Main-d'œuvre"));
     assert.ok(mo !== undefined);
@@ -49,9 +54,30 @@ describe("chiffrerDevis — cohérence comptable", () => {
     const g20 = calculerGeometrie(p20);
     const nom20 = genererNomenclature(p20, g20);
     const debit20 = planifierDebit(nom20.elements, p20.debit.barresCommercialesM, p20.debit.kerfMm);
-    const devis20 = chiffrerDevis(p20, g20, debit20);
+    const devis20 = chiffrerDevis(p20, g20, nom20.elements, debit20);
     assert.equal(devis20.totalHtCents, devis.totalHtCents);
     assert.ok(devis20.tvaCents > devis.tvaCents);
     assert.ok(devis20.totalTtcCents > devis.totalTtcCents);
+  });
+
+  it("sections liteau = contre-liteau partagées : répartition correcte (régression)", () => {
+    const base = projetParDefaut();
+    const sectionCommune = { largeurMm: 27, hauteurMm: 40 };
+    const p2 = projetParDefaut({
+      ...base,
+      charpente: {
+        ...base.charpente,
+        sections: { ...base.charpente.sections, liteau: sectionCommune, contreLiteau: sectionCommune },
+      },
+    });
+    const g2 = calculerGeometrie(p2);
+    const nom2 = genererNomenclature(p2, g2);
+    const debit2 = planifierDebit(nom2.elements, p2.debit.barresCommercialesM, p2.debit.kerfMm);
+    const devis2 = chiffrerDevis(p2, g2, nom2.elements, debit2);
+    // Les deux lignes existent et sont positives (avant le fix, les liteaux tombaient à 0).
+    const liteaux = devis2.lignes.find((l) => l.libelle === "Liteaux");
+    const contre = devis2.lignes.find((l) => l.libelle === "Contre-liteaux");
+    assert.ok(liteaux && liteaux.quantite > 0, "ligne Liteaux présente et > 0");
+    assert.ok(contre && contre.quantite > 0, "ligne Contre-liteaux présente et > 0");
   });
 });
