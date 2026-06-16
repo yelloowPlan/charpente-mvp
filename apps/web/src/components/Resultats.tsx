@@ -3,6 +3,8 @@ import {
   type Etude,
   type Entreprise,
   type Client,
+  type ParametresProjet,
+  etudier,
   genererOssature3D,
   genererLattage3D,
   genererCouverture3D,
@@ -73,6 +75,26 @@ export function Resultats({
   const couv = useMemo(() => metreCouverture(p, g), [p, g]);
   const [etape, setEtape] = useState(1);
   const [animation, setAnimation] = useState(false);
+  const [variantes, setVariantes] = useState<{ id: string; label: string; projet: ParametresProjet }[]>([]);
+
+  const ajouterVariante = () =>
+    setVariantes((v) => [
+      ...v,
+      {
+        id: crypto.randomUUID(),
+        label: `${p.toiture.typologie} · ${p.toiture.couverture.type} · ${p.toiture.penteDeg}°`,
+        projet: structuredClone(p),
+      },
+    ]);
+  const retirerVariante = (id: string) => setVariantes((v) => v.filter((x) => x.id !== id));
+
+  const resumeVariante = (projet: ParametresProjet) => {
+    const e = etudier(projet);
+    const volume = e.debit.sections
+      .filter((s) => s.mode === "barre")
+      .reduce((acc, s) => acc + s.volumeAcheteM3, 0);
+    return { surface: e.geometrie.surfaceToitureM2, volume, ttc: e.devis.totalTtcCents };
+  };
 
   // Animation « construction » : ossature → lattage → couverture.
   useEffect(() => {
@@ -309,6 +331,44 @@ export function Resultats({
             </div>
           )}
         </div>
+      </div>
+
+      <div className="bloc">
+        <h2>Comparateur de variantes</h2>
+        <button type="button" className="ajouter-ligne" onClick={ajouterVariante}>
+          + Comparer la configuration actuelle
+        </button>
+        {variantes.length > 0 && (
+          <table>
+            <thead>
+              <tr>
+                <th>Variante</th>
+                <th className="num">Surface</th>
+                <th className="num">Bois</th>
+                <th className="num">Total TTC</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {variantes.map((v) => {
+                const r = resumeVariante(v.projet);
+                return (
+                  <tr key={v.id}>
+                    <td>{v.label}</td>
+                    <td className="num">{nb(r.surface)} m²</td>
+                    <td className="num">{nb(r.volume, 3)} m³</td>
+                    <td className="num">{euros(r.ttc)}</td>
+                    <td className="num">
+                      <button type="button" className="suppr" aria-label="Retirer" onClick={() => retirerVariante(v.id)}>
+                        ✕
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {etude.alertes.length > 0 && (
