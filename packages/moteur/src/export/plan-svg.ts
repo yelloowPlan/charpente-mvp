@@ -36,11 +36,31 @@ export function planMasseSvg(p: ParametresProjet, geo?: GeometrieToit): string {
   // Fond du contour (premier segment = côté bas) — rectangle de remplissage
   const fond = `<rect x="${f(X(0))}" y="${f(Y(0))}" width="${f(Lp * echelle)}" height="${f(W * echelle)}" fill="#f8fafc"/>`;
 
-  const lignes = segmentsPlan(p, g)
+  const segs = segmentsPlan(p, g);
+  const lignes = segs
     .map((s) => {
       const st = STYLE[s.type];
       const dash = st.dash ? ` stroke-dasharray="${st.dash}"` : "";
       return `<line x1="${f(X(s.x1))}" y1="${f(Y(s.y1))}" x2="${f(X(s.x2))}" y2="${f(Y(s.y2))}" stroke="${st.couleur}" stroke-width="${st.largeur}"${dash}/>`;
+    })
+    .join("");
+
+  // Repérage pour la pose : fermes F1.. et arêtiers A1..
+  let nF = 0;
+  let nA = 0;
+  const reperes = segs
+    .map((s) => {
+      if (s.type === "ferme") {
+        nF += 1;
+        return `<text x="${f(X(s.x1))}" y="${f(Y(0) - 5)}" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a2b">F${nF}</text>`;
+      }
+      if (s.type === "aretier") {
+        nA += 1;
+        const mx = (s.x1 + s.x2) / 2;
+        const my = (s.y1 + s.y2) / 2;
+        return `<text x="${f(X(mx))}" y="${f(Y(my))}" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a2b">A${nA}</text>`;
+      }
+      return "";
     })
     .join("");
 
@@ -56,6 +76,7 @@ export function planMasseSvg(p: ParametresProjet, geo?: GeometrieToit): string {
     `<text x="${VW / 2}" y="24" text-anchor="middle" font-size="14" fill="#1c1917" font-weight="600">Plan de charpente</text>`,
     fond,
     lignes,
+    reperes,
     coteL,
     coteW,
     `</svg>`,

@@ -20,10 +20,16 @@ describe("planMasseSvg", () => {
     });
   }
 
-  it("croupe : trace les 4 arêtiers (lignes pointillées)", () => {
+  it("croupe : trace les 4 arêtiers (lignes pointillées) + repères A1..A4", () => {
     const base = projetParDefaut();
     const p = projetParDefaut({ ...base, toiture: { ...base.toiture, typologie: "croupe" } });
     const svg = planMasseSvg(p);
     assert.equal((svg.match(/stroke-dasharray/g) ?? []).length, 4);
+    assert.ok(svg.includes(">A1<") && svg.includes(">A4<"));
+  });
+
+  it("deux pans : repérage des fermes F1..", () => {
+    const svg = planMasseSvg(projetParDefaut());
+    assert.ok(svg.includes(">F1<"));
   });
 });
