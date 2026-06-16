@@ -2,6 +2,7 @@ import type { Etude } from "../engine/etude.ts";
 import type { Entreprise, Client } from "../domain/types.ts";
 import { appliquerRemise, type LigneDevis } from "../engine/devis.ts";
 import { coupeTransversaleSvg } from "./schema-svg.ts";
+import { planMasseSvg } from "./plan-svg.ts";
 
 /**
  * Livrable HTML autonome (CSS inline, imprimable A4 → PDF via le navigateur).
@@ -169,6 +170,7 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
   .meta { color: var(--gris); margin: 0 0 16px; font-size: 14px; }
   .haut { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
   .haut svg { width: 440px; max-width: 100%; border: 1px solid var(--trait); border-radius: 8px; }
+  .plan svg { width: 480px; max-width: 100%; border: 1px solid var(--trait); border-radius: 8px; }
   .geo { list-style: none; padding: 0; margin: 0; font-size: 14px; }
   .geo li { display: flex; justify-content: space-between; gap: 24px; padding: 3px 0; border-bottom: 1px dotted var(--trait); }
   .geo b { font-variant-numeric: tabular-nums; }
@@ -211,6 +213,9 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
       <li><span>Portée admissible chevron</span><b>${nb(nom.porteeAdmissibleChevronM, 2)} m</b></li>
     </ul>
   </div>
+
+  <h2>Plan de charpente</h2>
+  <div class="plan">${planMasseSvg(p)}</div>
 
   <h2>Nomenclature</h2>
   <table>

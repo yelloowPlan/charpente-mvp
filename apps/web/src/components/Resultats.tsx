@@ -6,6 +6,7 @@ import {
   genererOssature3D,
   genererLattage3D,
   genererCouverture3D,
+  planMasseSvg,
   appliquerRemise,
   etudeVersHtml,
   nomenclatureVersCsv,
@@ -64,6 +65,7 @@ export function Resultats({
   const lattage = useMemo(() => genererLattage3D(p, g), [p, g]);
   const pans = useMemo(() => genererCouverture3D(p, g), [p, g]);
   const couvertureCouleur = COUV_COULEUR[p.toiture.couverture.type] ?? "#b25b3e";
+  const planSvg = useMemo(() => planMasseSvg(p, g), [p, g]);
   const [etape, setEtape] = useState(1);
 
   const dateGeneration = new Date().toISOString().slice(0, 10);
@@ -148,6 +150,11 @@ export function Resultats({
           </Suspense>
         </div>
         <p className="vue3d-aide">Glissez pour pivoter · molette pour zoomer</p>
+      </div>
+
+      <div className="bloc">
+        <h2>Plan de charpente</h2>
+        <div className="plan" dangerouslySetInnerHTML={{ __html: planSvg }} />
       </div>
 
       <div className="bloc">

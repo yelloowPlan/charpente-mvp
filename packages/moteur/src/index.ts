@@ -33,4 +33,5 @@ export {
 // Exports / livrables
 export { nomenclatureVersCsv, debitVersCsv, devisVersCsv, planDeCoupeVersCsv } from "./export/csv.ts";
 export { coupeTransversaleSvg, type ParamsCoupe } from "./export/schema-svg.ts";
+export { planMasseSvg } from "./export/plan-svg.ts";
 export { etudeVersHtml, type OptionsHtml } from "./export/html.ts";
