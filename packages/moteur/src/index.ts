@@ -25,6 +25,6 @@ export {
   type RolePoutre,
 } from "./engine/ossature.ts";
 // Exports / livrables
-export { nomenclatureVersCsv, debitVersCsv, devisVersCsv } from "./export/csv.ts";
+export { nomenclatureVersCsv, debitVersCsv, devisVersCsv, planDeCoupeVersCsv } from "./export/csv.ts";
 export { coupeTransversaleSvg, type ParamsCoupe } from "./export/schema-svg.ts";
 export { etudeVersHtml, type OptionsHtml } from "./export/html.ts";

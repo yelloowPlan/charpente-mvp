@@ -9,6 +9,7 @@ import {
   nomenclatureVersCsv,
   debitVersCsv,
   devisVersCsv,
+  planDeCoupeVersCsv,
 } from "@charpente/moteur";
 import { euros, nb } from "../lib/format.ts";
 import { telecharger } from "../lib/telechargement.ts";
@@ -86,6 +87,7 @@ export function Resultats({
         <button onClick={() => telecharger("devis.csv", devisVersCsv(devis), "text/csv")}>⬇ Devis CSV</button>
         <button onClick={() => telecharger("debit.csv", debitVersCsv(debit), "text/csv")}>⬇ Débit CSV</button>
         <button onClick={() => telecharger("nomenclature.csv", nomenclatureVersCsv(nom), "text/csv")}>⬇ Nomenclature CSV</button>
+        <button onClick={() => telecharger("plan-de-coupe.csv", planDeCoupeVersCsv(debit), "text/csv")}>⬇ Plan de coupe</button>
       </div>
 
       <div className="bloc">

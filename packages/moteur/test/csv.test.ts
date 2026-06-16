@@ -2,9 +2,19 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { projetParDefaut } from "../src/domain/defaults.ts";
 import { etudier } from "../src/engine/etude.ts";
-import { nomenclatureVersCsv, debitVersCsv, devisVersCsv } from "../src/export/csv.ts";
+import { nomenclatureVersCsv, debitVersCsv, devisVersCsv, planDeCoupeVersCsv } from "../src/export/csv.ts";
 
 const etude = etudier(projetParDefaut());
+
+describe("plan de coupe CSV", () => {
+  it("liste les barres avec leurs pièces et la chute", () => {
+    const csv = planDeCoupeVersCsv(etude.debit);
+    const lignes = csv.replace("﻿", "").trimEnd().split("\r\n");
+    assert.ok(lignes[0].startsWith("Section (mm);Barre;Longueur"));
+    assert.ok(lignes.length > 1);
+    assert.ok(!csv.includes("undefined") && !csv.includes("NaN"));
+  });
+});
 
 describe("export CSV", () => {
   it("commence par un BOM UTF-8 et utilise le séparateur ;", () => {

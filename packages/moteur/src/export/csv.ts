@@ -64,6 +64,37 @@ export function debitVersCsv(plan: PlanDebit): string {
   );
 }
 
+/**
+ * Plan de coupe atelier : pour chaque barre, les pièces à débiter et la chute.
+ * Prépare la fabrication (quelle barre → quelles longueurs).
+ */
+export function planDeCoupeVersCsv(plan: PlanDebit): string {
+  const lignes: string[][] = [];
+  for (const s of plan.sections) {
+    if (s.mode === "barre" && s.detailBarres.length > 0) {
+      s.detailBarres.forEach((b, i) => {
+        lignes.push([
+          s.sectionLabel,
+          String(i + 1),
+          b.longueurM.toFixed(2).replace(".", ","),
+          b.pieces.map((p) => p.toFixed(2).replace(".", ",")).join(" + "),
+          b.chuteM.toFixed(2).replace(".", ","),
+        ]);
+      });
+    } else {
+      // linéaire (aboutage) : résumé
+      lignes.push([
+        s.sectionLabel,
+        "linéaire",
+        s.mlAchete.toFixed(2).replace(".", ","),
+        `${s.barres} barre(s) aboutées · ${s.mlBrut.toFixed(2).replace(".", ",")} m utiles`,
+        (s.mlAchete - s.mlBrut).toFixed(2).replace(".", ","),
+      ]);
+    }
+  }
+  return versCsv(["Section (mm)", "Barre", "Longueur (m)", "Pièces (m)", "Chute (m)"], lignes);
+}
+
 export function devisVersCsv(devis: Devis): string {
   const lignes: string[][] = devis.lignes.map((l) => [
     l.libelle,
