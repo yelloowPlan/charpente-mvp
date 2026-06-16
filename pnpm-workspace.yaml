@@ -5,4 +5,5 @@ packages:
 # esbuild (via Vite) embarque son binaire de plateforme : on autorise son script
 # de build pour que `pnpm install` reste propre (exit 0).
 allowBuilds:
+  core-js: false
   esbuild: true

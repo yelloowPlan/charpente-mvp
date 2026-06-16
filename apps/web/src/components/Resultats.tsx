@@ -12,6 +12,7 @@ import {
 } from "@charpente/moteur";
 import { euros, nb } from "../lib/format.ts";
 import { telecharger } from "../lib/telechargement.ts";
+import { telechargerDevisPdf } from "../lib/pdf.ts";
 
 // Chargé à la demande : la stack 3D (three.js) reste hors du bundle initial.
 const Vue3D = lazy(() => import("./Vue3D.tsx"));
@@ -67,9 +68,18 @@ export function Resultats({
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "") || "charpente";
 
+  const exporterPdf = () => {
+    void telechargerDevisPdf(
+      etude,
+      { entreprise, client, numeroDevis, dateDevis, validiteJours, remisePct, acomptePct, referenceChantier },
+      `devis-${slug}.pdf`,
+    ).catch((err) => console.error("Échec génération PDF", err));
+  };
+
   return (
     <div className="resultats">
       <div className="export-bar">
+        <button onClick={exporterPdf}>⬇ Devis PDF</button>
         <button onClick={() => telecharger(`devis-${slug}.html`, htmlEtude(), "text/html")}>
           ⬇ Étude HTML (imprimable)
         </button>
