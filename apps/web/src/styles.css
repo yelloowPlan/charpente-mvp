@@ -199,6 +199,41 @@ body {
   accent-color: var(--accent);
 }
 
+/* ---- presets / modèles ---- */
+.presets {
+  margin-bottom: 16px;
+}
+.presets-label {
+  display: block;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--accent-fonce);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 8px;
+}
+.presets-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.preset-chip {
+  background: var(--surface);
+  border: 1px solid var(--trait-fort);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--encre-doux);
+  cursor: pointer;
+  transition: border-color var(--t), background var(--t), color var(--t);
+}
+.preset-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-doux);
+  color: var(--accent-fonce);
+}
+
 /* ---- panneau projets ---- */
 .form-projets .ligne-save {
   display: flex;

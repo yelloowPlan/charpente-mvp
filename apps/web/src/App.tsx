@@ -10,6 +10,8 @@ import {
 import { ParamForm } from "./components/ParamForm.tsx";
 import { Resultats } from "./components/Resultats.tsx";
 import { GestionProjets } from "./components/GestionProjets.tsx";
+import { Presets } from "./components/Presets.tsx";
+import type { Preset } from "./lib/presets.ts";
 import { EntrepriseForm } from "./components/EntrepriseForm.tsx";
 import { ClientDevisForm } from "./components/ClientDevisForm.tsx";
 import {
@@ -87,6 +89,10 @@ export default function App() {
     }
   };
   const handleDelete = (id: string) => setProjets(supprimerProjet(store, id));
+  const handlePreset = (preset: Preset) => {
+    setProjet(preset.projet);
+    setOnglet("resultats");
+  };
 
   return (
     <div className="app">
@@ -123,6 +129,7 @@ export default function App() {
           className={`colonne-form${onglet === "form" ? " onglet-actif" : ""}`}
           aria-label="Paramètres"
         >
+          <Presets onCharger={handlePreset} />
           <GestionProjets
             projets={projets}
             nom={nom}
