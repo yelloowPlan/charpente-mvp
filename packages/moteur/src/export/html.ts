@@ -154,7 +154,7 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
       ? `<p class="mentions">${esc(options.mentions).replace(/\n/g, "<br>")}</p>`
       : "";
   const pied = options.dateGeneration
-    ? `${mentionsHtml}<p class="pied">Généré le ${esc(options.dateGeneration)} — vérifications structurelles indicatives (flèche ELS), ne remplacent pas une note de calcul Eurocode 5.</p>`
+    ? `${mentionsHtml}<p class="pied">Généré le ${esc(options.dateGeneration)} — vérifications structurelles indicatives (flèche ELS + flexion ELU), ne remplacent pas une note de calcul Eurocode 5.</p>`
     : `${mentionsHtml}<p class="pied">Vérifications structurelles indicatives (flèche ELS), ne remplacent pas une note de calcul Eurocode 5.</p>`;
 
   return `<!doctype html>
@@ -259,6 +259,22 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
     <div class="ttc">Total TTC : ${eur(df.totalTtcCents)}</div>
     ${df.acompteCents > 0 ? `<div>Acompte ${df.acomptePct} % à la commande : <b>${eur(df.acompteCents)}</b></div>` : ""}
   </div>
+
+  <h2>Note de calcul chevron <small style="font-weight:400;color:#78716c">(indicative)</small></h2>
+  ${(() => {
+    const vs = etude.verifStructure;
+    const lignes: [string, string][] = [
+      ["Portée entre appuis retenue", `${nb(vs.porteeAdmissibleM, 2)} m`],
+      ["Critère de flèche", `ELS L/${vs.ratioFleche}`],
+      ["Charge ELU (1,35 G + 1,5 S)", `${nb(vs.chargeEluKNm2, 3)} kN/m²`],
+      ["Contrainte de flexion σ", `${nb(vs.contrainteFlexionMPa, 2)} MPa`],
+      [`Résistance f<sub>m,d</sub> (${esc(vs.classe)}, k_mod 0,8)`, `${nb(vs.fmdMPa, 2)} MPa`],
+      ["Taux de travail en flexion", `${vs.tauxFlexionPct} %`],
+    ];
+    return `<ul class="geo">${lignes
+      .map((l) => `<li><span>${l[0]}</span><b>${l[1]}</b></li>`)
+      .join("")}</ul>`;
+  })()}
 
   <h2>Alertes &amp; vérifications</h2>
   <ul class="alertes">${alertes}</ul>

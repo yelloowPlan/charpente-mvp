@@ -23,7 +23,13 @@ export {
   type DevisFinal,
   type LigneDevis,
 } from "./engine/devis.ts";
-export { etudier, validerProjet, ErreurValidation, type Etude } from "./engine/etude.ts";
+export {
+  etudier,
+  validerProjet,
+  ErreurValidation,
+  type Etude,
+  type VerifStructure,
+} from "./engine/etude.ts";
 export {
   genererOssature3D,
   genererLattage3D,

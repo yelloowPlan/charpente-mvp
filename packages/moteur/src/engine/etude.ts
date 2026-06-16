@@ -15,6 +15,17 @@ export class ErreurValidation extends Error {
   }
 }
 
+/** Note de calcul INDICATIVE du chevron (flèche ELS + flexion ELU simplifiées). */
+export interface VerifStructure {
+  porteeAdmissibleM: number; // portée entre appuis retenue (flèche L/300)
+  ratioFleche: number; // L / ratio (ex. 300)
+  chargeEluKNm2: number; // 1,35·G + 1,5·S
+  contrainteFlexionMPa: number; // σ
+  fmdMPa: number; // résistance de calcul
+  tauxFlexionPct: number; // σ / f_m,d ×100
+  classe: string;
+}
+
 export interface Etude {
   projet: ParametresProjet;
   geometrie: GeometrieToit;
@@ -22,6 +33,7 @@ export interface Etude {
   debit: PlanDebit;
   devis: Devis;
   alertes: Alerte[];
+  verifStructure: VerifStructure;
 }
 
 /**
@@ -133,6 +145,15 @@ export function etudier(p: ParametresProjet): Etude {
   );
   const fmd = fmdMPa(p.essence.classe);
   const utilPct = fmd > 0 ? Math.round((sigma / fmd) * 100) : 999;
+  const verifStructure: VerifStructure = {
+    porteeAdmissibleM: nomenclature.porteeAdmissibleChevronM,
+    ratioFleche: 300,
+    chargeEluKNm2: Math.round(qElu * 1000) / 1000,
+    contrainteFlexionMPa: Math.round(sigma * 100) / 100,
+    fmdMPa: Math.round(fmd * 100) / 100,
+    tauxFlexionPct: utilPct,
+    classe: p.essence.classe,
+  };
   alertes.push({
     niveau: utilPct > 100 ? "attention" : "info",
     message:
@@ -173,5 +194,5 @@ export function etudier(p: ParametresProjet): Etude {
     }
   }
 
-  return { projet: p, geometrie, nomenclature, debit, devis, alertes };
+  return { projet: p, geometrie, nomenclature, debit, devis, alertes, verifStructure };
 }

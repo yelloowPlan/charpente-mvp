@@ -66,6 +66,16 @@ describe("etudier — pipeline complet", () => {
     assert.ok(e.alertes.some((a) => a.niveau === "info" && a.message.includes("Eurocode 5")));
   });
 
+  it("produit une note de calcul (flèche + flexion ELU) cohérente", () => {
+    const e = etudier(projetParDefaut());
+    const vs = e.verifStructure;
+    assert.equal(vs.porteeAdmissibleM, e.nomenclature.porteeAdmissibleChevronM);
+    assert.equal(vs.ratioFleche, 300);
+    assert.ok(vs.chargeEluKNm2 > 0 && vs.contrainteFlexionMPa > 0);
+    assert.ok(vs.fmdMPa > 10 && vs.fmdMPa < 20); // C24 ≈ 14,8 MPa
+    assert.ok(vs.tauxFlexionPct > 0 && vs.tauxFlexionPct < 100); // dimensionnement sain
+  });
+
   it("lève ErreurValidation si un paramètre est bloquant", () => {
     const base = projetParDefaut();
     const p = projetParDefaut({ ...base, toiture: { ...base.toiture, penteDeg: -3 } });

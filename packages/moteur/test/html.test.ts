@@ -20,6 +20,12 @@ describe("export HTML", () => {
     assert.ok(html.includes("Coupe transversale"));
   });
 
+  it("affiche la note de calcul (flexion ELU + taux de travail)", () => {
+    assert.ok(html.includes("Note de calcul chevron"));
+    assert.ok(html.includes("Taux de travail en flexion"));
+    assert.ok(html.includes(`${etude.verifStructure.tauxFlexionPct} %`));
+  });
+
   it("contient une ligne de tableau par élément de nomenclature", () => {
     // chaque élément génère une cellule avec sa désignation
     for (const e of etude.nomenclature.elements) {

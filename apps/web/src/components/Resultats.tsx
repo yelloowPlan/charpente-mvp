@@ -171,6 +171,11 @@ export function Resultats({
           <Carte titre="Rampant" valeur={`${nb(g.rampantM, 3)} m`} />
           <Carte titre="Hauteur faîtage" valeur={`${nb(g.hauteurFaitageM, 3)} m`} />
           <Carte titre="Portée chevron adm." valeur={`${nb(nom.porteeAdmissibleChevronM, 2)} m`} />
+          <Carte
+            titre="Taux flexion ELU"
+            valeur={`${etude.verifStructure.tauxFlexionPct} %`}
+            tonalite={etude.verifStructure.tauxFlexionPct > 100 ? "attention" : "ok"}
+          />
         </div>
         <div className="etapes" role="tablist" aria-label="Étapes de construction">
           {ETAPES.map((label, i) => (
@@ -387,11 +392,15 @@ export function Resultats({
   );
 }
 
-function Carte(props: { titre: string; valeur: string }) {
+function Carte(props: { titre: string; valeur: string; tonalite?: "ok" | "attention" }) {
+  const couleur =
+    props.tonalite === "attention" ? "#b45309" : props.tonalite === "ok" ? "#15803d" : undefined;
   return (
     <div className="carte">
       <span className="carte-titre">{props.titre}</span>
-      <span className="carte-valeur">{props.valeur}</span>
+      <span className="carte-valeur" style={couleur ? { color: couleur } : undefined}>
+        {props.valeur}
+      </span>
     </div>
   );
 }
