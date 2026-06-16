@@ -1,62 +1,92 @@
 import type { ParametresProjet } from "../domain/types.ts";
 
 /**
- * Géométrie d'une toiture (deux pans symétrique OU appentis mono-pan).
+ * Géométrie d'une toiture : deux pans, appentis (mono-pan) ou croupe (4 pans).
  * Toutes les longueurs sont en mètres.
  */
 export interface GeometrieToit {
-  /** nombre de pans (2 = deux pans, 1 = appentis) */
-  nbPans: 1 | 2;
-  /** longueur réelle d'un rampant, débord compris (m) */
+  /** nombre de pans (2 = deux pans, 1 = appentis, 4 = croupe) */
+  nbPans: number;
+  /** longueur réelle d'un rampant principal, débord compris (m) */
   rampantM: number;
-  /** longueur réelle d'un rampant, hors débord (m) — utile pour les arbalétriers */
+  /** longueur réelle d'un rampant principal, hors débord (m) */
   rampantSansDebordM: number;
-  /** hauteur du faîtage (deux pans) ou du mur haut (appentis), au-dessus des sablières (m) */
+  /** hauteur du faîtage / mur haut, au-dessus des sablières (m) */
   hauteurFaitageM: number;
-  /** longueur d'un pan (débords de pignon inclus) (m) */
+  /** longueur d'un pan principal (m) — sert aux sablières/pannes longitudinales */
   longueurPanM: number;
-  /** projection horizontale d'un rampant, hors débord (m) — demi-portée en deux pans, portée en appentis */
+  /** projection horizontale d'un rampant principal hors débord (m) */
   demiPorteeM: number;
   /** surface développée de la toiture (m²) */
   surfaceToitureM2: number;
+  /** longueur de la panne faîtière (m) — raccourcie en croupe (L − W) */
+  longueurFaitageM: number;
+  /** longueur réelle d'un arêtier (m) — 0 hors croupe */
+  longueurAretierM: number;
 }
 
 const degVersRad = (deg: number): number => (deg * Math.PI) / 180;
 
 /**
- * Calcule la géométrie de la toiture selon la typologie.
- *
- * Deux pans (α = pente) :
- *   rampant R = (W/2 + d)/cos α · hauteur h = (W/2)·tan α · surface = 2·R·Lp
- * Appentis (mono-pan, la pente couvre toute la portée W) :
- *   rampant R = (W + d)/cos α · hauteur h = W·tan α · surface = 1·R·Lp
- * avec Lp = L + 2·dp dans les deux cas.
+ * Géométrie selon la typologie (α = pente) :
+ *  - deux pans : rampant=(W/2+d)/cosα, h=(W/2)tanα, surface=2·rampant·Lp
+ *  - appentis  : rampant=(W+d)/cosα,  h=W·tanα,     surface=rampant·Lp
+ *  - croupe    : surface=(L+2d)(W+2d)/cosα ; faîtage=max(0,L−W) ;
+ *                arêtier=(W/2)·√(2+tan²α) (hip à pente égale)
  */
 export function calculerGeometrie(p: ParametresProjet): GeometrieToit {
   const { largeurM: W, longueurM: L, debordRampantM: d, debordPignonM: dp } = p.batiment;
   const alpha = degVersRad(p.toiture.penteDeg);
   const cos = Math.cos(alpha);
   const tan = Math.tan(alpha);
+  const typologie = p.toiture.typologie;
 
-  const appentis = p.toiture.typologie === "appentis";
-  const nbPans: 1 | 2 = appentis ? 1 : 2;
-  // « course » horizontale du rampant (hors débord) : portée entière en appentis,
-  // demi-portée en deux pans.
-  const demiPorteeM = appentis ? W : W / 2;
+  if (typologie === "appentis") {
+    const demiPorteeM = W;
+    const rampantM = (demiPorteeM + d) / cos;
+    const longueurPanM = L + 2 * dp;
+    return {
+      nbPans: 1,
+      rampantM,
+      rampantSansDebordM: demiPorteeM / cos,
+      hauteurFaitageM: demiPorteeM * tan,
+      longueurPanM,
+      demiPorteeM,
+      surfaceToitureM2: rampantM * longueurPanM,
+      longueurFaitageM: longueurPanM,
+      longueurAretierM: 0,
+    };
+  }
 
+  if (typologie === "croupe") {
+    const demiPorteeM = W / 2;
+    const longueurPanM = L + 2 * d; // débord d'avant-toit sur les longs pans
+    return {
+      nbPans: 4,
+      rampantM: (demiPorteeM + d) / cos,
+      rampantSansDebordM: demiPorteeM / cos,
+      hauteurFaitageM: demiPorteeM * tan,
+      longueurPanM,
+      demiPorteeM,
+      surfaceToitureM2: ((L + 2 * d) * (W + 2 * d)) / cos,
+      longueurFaitageM: Math.max(0, L - W),
+      longueurAretierM: demiPorteeM * Math.sqrt(2 + tan * tan),
+    };
+  }
+
+  // deux pans (par défaut)
+  const demiPorteeM = W / 2;
   const rampantM = (demiPorteeM + d) / cos;
-  const rampantSansDebordM = demiPorteeM / cos;
-  const hauteurFaitageM = demiPorteeM * tan;
   const longueurPanM = L + 2 * dp;
-  const surfaceToitureM2 = nbPans * rampantM * longueurPanM;
-
   return {
-    nbPans,
+    nbPans: 2,
     rampantM,
-    rampantSansDebordM,
-    hauteurFaitageM,
+    rampantSansDebordM: demiPorteeM / cos,
+    hauteurFaitageM: demiPorteeM * tan,
     longueurPanM,
     demiPorteeM,
-    surfaceToitureM2,
+    surfaceToitureM2: 2 * rampantM * longueurPanM,
+    longueurFaitageM: longueurPanM,
+    longueurAretierM: 0,
   };
 }

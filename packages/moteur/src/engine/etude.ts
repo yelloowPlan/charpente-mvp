@@ -31,9 +31,10 @@ export function validerProjet(p: ParametresProjet): Alerte[] {
   const a: Alerte[] = [];
   const bloquant = (message: string) => a.push({ niveau: "bloquant", message });
 
-  // Périmètre MVP
-  if (p.toiture.typologie !== "deux_pans" && p.toiture.typologie !== "appentis") {
-    bloquant("MVP : typologies supportées = deux pans symétriques ou appentis (mono-pan).");
+  // Périmètre : typologies supportées
+  const typologiesOk = ["deux_pans", "appentis", "croupe"];
+  if (!typologiesOk.includes(p.toiture.typologie)) {
+    bloquant("Typologies supportées : deux pans, appentis (mono-pan) ou croupe (4 pans).");
   }
   if (p.charpente.type !== "trad_pannes") {
     bloquant("MVP : seule la charpente traditionnelle à pannes est supportée (type ≠ trad_pannes).");
@@ -133,6 +134,21 @@ export function etudier(p: ParametresProjet): Etude {
         "Appentis : les pannes reposent sur les murs de rive ; les supports intermédiaires " +
         "(poteaux/portiques) pour les grandes longueurs ne sont pas calculés en MVP.",
     });
+  }
+
+  if (p.toiture.typologie === "croupe") {
+    alertes.push({
+      niveau: "attention",
+      message:
+        "Croupe : arêtiers, faîtage et sablières exacts ; chevrons et liteaux ESTIMÉS " +
+        "(surface ÷ entraxe / pureau, ±5-10 %). Empannons et coupes composées à affiner par le pro.",
+    });
+    if (p.batiment.longueurM < p.batiment.largeurM) {
+      alertes.push({
+        niveau: "attention",
+        message: "Croupe : longueur < largeur — géométrie proche d'une pyramide, faîtage nul ; estimation dégradée.",
+      });
+    }
   }
 
   return { projet: p, geometrie, nomenclature, debit, devis, alertes };

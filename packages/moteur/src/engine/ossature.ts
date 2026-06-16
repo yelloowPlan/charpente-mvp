@@ -20,6 +20,7 @@ export type RolePoutre =
   | "sabliere"
   | "faitiere"
   | "panne"
+  | "aretier"
   | "entrait"
   | "arbaletrier"
   | "poincon";
@@ -58,6 +59,52 @@ export function genererOssature3D(
 
   const nbChevronsParPan = Math.floor(Lp / c.entraxeChevronM) + 1;
   const xsChevrons = repartir(nbChevronsParPan, Lp);
+
+  if (p.toiture.typologie === "croupe") {
+    const dz = W / 2;
+    const halfL = L / 2;
+    const ridgeHalf = g.longueurFaitageM / 2;
+    const secPanne = { largeurMm: s.panne.largeurMm, hauteurMm: s.panne.hauteurMm };
+    const secAret = { largeurMm: s.arbaletrier.largeurMm, hauteurMm: s.arbaletrier.hauteurMm };
+    const secChev = { largeurMm: s.chevron.largeurMm, hauteurMm: s.chevron.hauteurMm };
+
+    // Faîtière raccourcie
+    if (g.longueurFaitageM > 0) {
+      poutres.push({ role: "faitiere", a: [-ridgeHalf, h, 0], b: [ridgeHalf, h, 0], ...secPanne });
+    }
+    // 4 arêtiers (coins → extrémités du faîtage)
+    poutres.push({ role: "aretier", a: [halfL, 0, dz], b: [ridgeHalf, h, 0], ...secAret });
+    poutres.push({ role: "aretier", a: [halfL, 0, -dz], b: [ridgeHalf, h, 0], ...secAret });
+    poutres.push({ role: "aretier", a: [-halfL, 0, dz], b: [-ridgeHalf, h, 0], ...secAret });
+    poutres.push({ role: "aretier", a: [-halfL, 0, -dz], b: [-ridgeHalf, h, 0], ...secAret });
+    // Sablières (périmètre)
+    poutres.push({ role: "sabliere", a: [-halfL, 0, dz], b: [halfL, 0, dz], ...secPanne });
+    poutres.push({ role: "sabliere", a: [-halfL, 0, -dz], b: [halfL, 0, -dz], ...secPanne });
+    poutres.push({ role: "sabliere", a: [halfL, 0, -dz], b: [halfL, 0, dz], ...secPanne });
+    poutres.push({ role: "sabliere", a: [-halfL, 0, -dz], b: [-halfL, 0, dz], ...secPanne });
+    // Chevrons centraux (longs pans, sur la longueur du faîtage)
+    if (ridgeHalf > 0) {
+      const nCentral = Math.max(2, Math.floor((2 * ridgeHalf) / c.entraxeChevronM) + 1);
+      for (let i = 0; i < nCentral; i++) {
+        const x = -ridgeHalf + (i * (2 * ridgeHalf)) / (nCentral - 1);
+        poutres.push({ role: "chevron", a: [x, 0, dz], b: [x, h, 0], ...secChev });
+        poutres.push({ role: "chevron", a: [x, 0, -dz], b: [x, h, 0], ...secChev });
+      }
+    }
+    // Empannon central sur chaque croupe (rend la lecture du pan d'extrémité)
+    poutres.push({ role: "chevron", a: [halfL, 0, 0], b: [ridgeHalf, h, 0], ...secChev });
+    poutres.push({ role: "chevron", a: [-halfL, 0, 0], b: [-ridgeHalf, h, 0], ...secChev });
+    // Pannes intermédiaires (longs pans, centrales)
+    for (let i = 1; i <= nbInter; i++) {
+      const t = i / (nbInter + 1);
+      const z = dz * (1 - t);
+      const y = h * t;
+      const ext = ridgeHalf > 0 ? ridgeHalf : halfL;
+      poutres.push({ role: "panne", a: [-ext, y, z], b: [ext, y, z], ...secPanne });
+      poutres.push({ role: "panne", a: [-ext, y, -z], b: [ext, y, -z], ...secPanne });
+    }
+    return poutres;
+  }
 
   if (g.nbPans === 2) {
     const dz = W / 2;

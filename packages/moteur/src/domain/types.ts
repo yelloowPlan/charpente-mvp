@@ -21,8 +21,8 @@ export interface Section {
   hauteurMm: number;
 }
 
-/** Typologies de toiture supportées. MVP : `deux_pans` uniquement. */
-export type TypeToiture = "deux_pans" | "appentis";
+/** Typologies de toiture supportées. */
+export type TypeToiture = "deux_pans" | "appentis" | "croupe";
 
 /** Types de charpente. MVP : `trad_pannes` uniquement. */
 export type TypeCharpente = "trad_pannes" | "fermette";
@@ -127,6 +127,7 @@ export type RoleElement =
   | "panne_faitiere"
   | "panne_sabliere"
   | "panne_intermediaire"
+  | "aretier"
   | "ferme_entrait"
   | "ferme_arbaletrier"
   | "ferme_poincon";

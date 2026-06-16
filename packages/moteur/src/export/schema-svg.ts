@@ -16,8 +16,8 @@ export interface ParamsCoupe {
   penteDeg: number;
   /** nombre de pannes intermédiaires par pan */
   nbPannesIntermParPan: number;
-  /** nombre de pans : 2 (deux pans) ou 1 (appentis). Défaut 2. */
-  nbPans?: 1 | 2;
+  /** nombre de pans (1 = appentis ; 2 ou 4 = coupe transversale deux-pans). Défaut 2. */
+  nbPans?: number;
 }
 
 const VW = 440;

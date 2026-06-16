@@ -18,7 +18,8 @@ apps/web          @charpente/web     — configurateur Vite + React (le moteur t
 
 | Supporté (MVP) | Hors périmètre (versions suivantes) |
 |---|---|
-| Toiture **deux pans** + **appentis (mono-pan)** | Croupes, arêtiers, noues, lucarnes, mansart |
+| Toiture **deux pans**, **appentis**, **croupe** (estimée) | Noues, lucarnes, mansart, coupes composées exactes |
+| **Visualisation 3D** interactive (live) | — |
 | Charpente **traditionnelle à pannes** | Fermettes industrielles, ossature bois, CLT |
 | Métré géométrique exact | Modeleur solide 3D, coupes composées (dévers) |
 | Débit barres + liteaunage au ml | Pilotage machine (export BTLx) |
@@ -53,8 +54,10 @@ champs tactiles) · installable (« ajout à l'écran d'accueil »).
 
 - La vérification structurelle ne couvre **que la flèche (ELS)** — pas l'ELU, le
   flambement, le déversement ni les assemblages. **Ne remplace pas un bureau d'études.**
-- Géométrie limitée aux **deux pans / appentis** : dès qu'il y a croupe/noue/lucarne,
-  il faudra un vrai noyau solide 3D (verrou technique majeur, cf. analyse produit).
+- **Croupe estimée** : arêtiers, faîtage raccourci (L−W) et sablières **exacts** ;
+  chevrons/liteaux **estimés** (surface ÷ entraxe / pureau, ±5-10 %). Empannons et
+  coupes composées exactes = future évolution (vrai noyau solide 3D).
+- Noues, lucarnes, mansart : hors périmètre (verrou technique majeur, cf. analyse produit).
 - Appentis : supports intermédiaires des pannes (poteaux/portiques) non calculés (alerte).
 - Le poids propre du bois est négligé dans la charge (conservateur, documenté).
 
@@ -64,7 +67,7 @@ Prérequis : **Node ≥ 22.18** (le moteur tourne en TypeScript natif, sans buil
 
 ```bash
 pnpm install
-pnpm test          # tous les packages : 143 tests moteur (dont matrice robustesse) + 22 tests web
+pnpm test          # tous les packages : 192 tests moteur (dont matrice robustesse) + 22 tests web
 pnpm type-check    # tous les packages (tsc --noEmit strict)
 pnpm dev           # lance le configurateur web (Vite, http://localhost:5173)
 pnpm build:web     # build de production de l'app web

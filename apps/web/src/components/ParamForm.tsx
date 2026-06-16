@@ -94,6 +94,7 @@ export function ParamForm({ projet, onChange }: Props) {
           options={[
             ["deux_pans", "Deux pans"],
             ["appentis", "Appentis (1 pan)"],
+            ["croupe", "Croupe (4 pans)"],
           ]}
           onChange={setTypologie}
         />

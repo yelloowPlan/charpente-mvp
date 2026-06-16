@@ -14,7 +14,7 @@ import type { ParametresProjet, TypeToiture } from "../src/domain/types.ts";
  */
 
 const base = projetParDefaut();
-const typologies: TypeToiture[] = ["deux_pans", "appentis"];
+const typologies: TypeToiture[] = ["deux_pans", "appentis", "croupe"];
 const pentes = [6, 30, 45, 60, 80];
 const tailles: [number, number][] = [
   [4, 3],
