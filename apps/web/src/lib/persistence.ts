@@ -175,6 +175,8 @@ export interface DocumentDevis {
   client: Client;
   numeroDevis: string;
   validiteJours: number;
+  remisePct: number;
+  acomptePct: number;
 }
 
 export function documentVide(): DocumentDevis {
@@ -182,6 +184,8 @@ export function documentVide(): DocumentDevis {
     client: { nom: "", adresse: "", codePostal: "", ville: "" },
     numeroDevis: "",
     validiteJours: 30,
+    remisePct: 0,
+    acomptePct: 0,
   };
 }
 
@@ -206,7 +210,15 @@ export function chargerDocument(store: Magasin): DocumentDevis | null {
     const brut = store.getItem(CLE_DOCUMENT);
     if (!brut) return null;
     const d: unknown = JSON.parse(brut);
-    return estDocument(d) ? d : null;
+    if (!estDocument(d)) return null;
+    const o = d as unknown as Record<string, unknown>;
+    // Rétro-compatibilité : les docs antérieurs n'ont pas remise/acompte.
+    return {
+      ...documentVide(),
+      ...d,
+      remisePct: typeof o.remisePct === "number" ? o.remisePct : 0,
+      acomptePct: typeof o.acomptePct === "number" ? o.acomptePct : 0,
+    };
   } catch {
     return null;
   }

@@ -4,7 +4,7 @@ import { projetParDefaut } from "../src/domain/defaults.ts";
 import { calculerGeometrie } from "../src/engine/geometrie.ts";
 import { genererNomenclature } from "../src/engine/nomenclature.ts";
 import { planifierDebit } from "../src/engine/debit.ts";
-import { chiffrerDevis } from "../src/engine/devis.ts";
+import { chiffrerDevis, appliquerRemise } from "../src/engine/devis.ts";
 import { closeTo } from "./helpers.ts";
 
 function devisDeReference() {
@@ -58,6 +58,28 @@ describe("chiffrerDevis — cohérence comptable", () => {
     assert.equal(devis20.totalHtCents, devis.totalHtCents);
     assert.ok(devis20.tvaCents > devis.tvaCents);
     assert.ok(devis20.totalTtcCents > devis.totalTtcCents);
+  });
+
+  it("appliquerRemise sans remise = totaux du devis brut", () => {
+    const df = appliquerRemise(devis);
+    assert.equal(df.totalHtCents, devis.totalHtCents);
+    assert.equal(df.totalTtcCents, devis.totalTtcCents);
+    assert.equal(df.remiseCents, 0);
+    assert.equal(df.acompteCents, 0);
+  });
+
+  it("remise 10 % réduit le HT et recalcule TVA/TTC", () => {
+    const df = appliquerRemise(devis, 10);
+    assert.equal(df.remiseCents, Math.round(devis.totalHtCents * 0.1));
+    assert.equal(df.totalHtCents, df.sousTotalHtCents - df.remiseCents);
+    assert.equal(df.tvaCents, Math.round((df.totalHtCents * df.tauxTvaPct) / 100));
+    assert.equal(df.totalTtcCents, df.totalHtCents + df.tvaCents);
+    assert.ok(df.totalTtcCents < devis.totalTtcCents);
+  });
+
+  it("acompte = % du TTC", () => {
+    const df = appliquerRemise(devis, 0, 30);
+    assert.equal(df.acompteCents, Math.round(df.totalTtcCents * 0.3));
   });
 
   it("sections liteau = contre-liteau partagées : répartition correcte (régression)", () => {

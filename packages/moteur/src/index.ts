@@ -10,7 +10,13 @@ export {
 } from "./engine/structure.ts";
 export { genererNomenclature, type ResultatNomenclature } from "./engine/nomenclature.ts";
 export { planifierDebit, type PlanDebit, type PlanSection, type BarreDebitee } from "./engine/debit.ts";
-export { chiffrerDevis, type Devis, type LigneDevis } from "./engine/devis.ts";
+export {
+  chiffrerDevis,
+  appliquerRemise,
+  type Devis,
+  type DevisFinal,
+  type LigneDevis,
+} from "./engine/devis.ts";
 export { etudier, validerProjet, ErreurValidation, type Etude } from "./engine/etude.ts";
 export {
   genererOssature3D,

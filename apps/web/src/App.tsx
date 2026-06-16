@@ -155,6 +155,8 @@ export default function App() {
               client={doc.client}
               numeroDevis={doc.numeroDevis}
               validiteJours={doc.validiteJours}
+              remisePct={doc.remisePct}
+              acomptePct={doc.acomptePct}
             />
           ) : (
             <div className="bloc erreurs" role="alert">

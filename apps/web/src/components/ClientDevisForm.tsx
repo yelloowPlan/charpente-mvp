@@ -51,6 +51,24 @@ export function ClientDevisForm({ doc, onChange }: Props) {
               onChange={(e) => onChange({ ...doc, validiteJours: Number(e.target.value) || 0 })}
             />
           </label>
+          <label className="champ-large">
+            <span>Remise (% HT)</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              value={doc.remisePct}
+              onChange={(e) => onChange({ ...doc, remisePct: Math.max(0, Number(e.target.value) || 0) })}
+            />
+          </label>
+          <label className="champ-large">
+            <span>Acompte (% TTC)</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              value={doc.acomptePct}
+              onChange={(e) => onChange({ ...doc, acomptePct: Math.max(0, Number(e.target.value) || 0) })}
+            />
+          </label>
         </div>
       )}
     </fieldset>

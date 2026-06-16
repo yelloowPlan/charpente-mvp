@@ -97,6 +97,18 @@ describe("export HTML", () => {
     assert.ok(h.includes("Étude de charpente — Maison Martin"));
   });
 
+  it("affiche remise et acompte quand fournis", () => {
+    const h = etudeVersHtml(etude, { remisePct: 10, acomptePct: 30 });
+    assert.ok(h.includes("Remise 10 %"));
+    assert.ok(h.includes("Sous-total HT"));
+    assert.ok(h.includes("Acompte 30 %"));
+  });
+
+  it("n'affiche ni remise ni acompte par défaut", () => {
+    assert.ok(!html.includes("Remise"));
+    assert.ok(!html.includes("Acompte"));
+  });
+
   it("n'affiche pas de bloc devis/client par défaut", () => {
     assert.ok(!html.includes('<div class="bloc-devis">'));
   });

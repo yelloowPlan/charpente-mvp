@@ -126,11 +126,26 @@ describe("persistence — document de devis", () => {
       client: { nom: "M. Martin", adresse: "3 rue X", codePostal: "73100", ville: "Aix" },
       numeroDevis: "DEV-1",
       validiteJours: 45,
+      remisePct: 5,
+      acomptePct: 30,
     });
     const d = chargerDocument(s);
     expect(d?.client.nom).toBe("M. Martin");
     expect(d?.numeroDevis).toBe("DEV-1");
     expect(d?.validiteJours).toBe(45);
+    expect(d?.remisePct).toBe(5);
+    expect(d?.acomptePct).toBe(30);
+  });
+
+  it("rétro-compatibilité : doc sans remise/acompte → valeurs à 0", () => {
+    const s = fauxMagasin();
+    s.setItem(
+      "charpente.document.v1",
+      JSON.stringify({ client: { nom: "X", adresse: "", codePostal: "", ville: "" }, numeroDevis: "", validiteJours: 30 }),
+    );
+    const d = chargerDocument(s);
+    expect(d?.remisePct).toBe(0);
+    expect(d?.acomptePct).toBe(0);
   });
 
   it("ignore un document corrompu (validité non numérique)", () => {

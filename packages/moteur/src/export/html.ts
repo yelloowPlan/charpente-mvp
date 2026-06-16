@@ -1,5 +1,6 @@
 import type { Etude } from "../engine/etude.ts";
 import type { Entreprise, Client } from "../domain/types.ts";
+import { appliquerRemise } from "../engine/devis.ts";
 import { coupeTransversaleSvg } from "./schema-svg.ts";
 
 /**
@@ -22,6 +23,10 @@ export interface OptionsHtml {
   dateDevis?: string;
   /** durée de validité du devis, en jours */
   validiteJours?: number;
+  /** remise commerciale (% du HT) */
+  remisePct?: number;
+  /** acompte demandé à la commande (% du TTC) */
+  acomptePct?: number;
 }
 
 const esc = (s: string): string =>
@@ -81,6 +86,7 @@ const nb = (n: number, dec = 2): string =>
 
 export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
+  const df = appliquerRemise(devis, options.remisePct, options.acomptePct);
 
   const svg = coupeTransversaleSvg({
     largeurM: p.batiment.largeurM,
@@ -215,9 +221,12 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
     <tbody>${lignesDevis}</tbody>
   </table>
   <div class="totaux">
-    <div>Total HT : <b>${eur(devis.totalHtCents)}</b></div>
-    <div>TVA ${devis.tauxTvaPct} % : <b>${eur(devis.tvaCents)}</b></div>
-    <div class="ttc">Total TTC : ${eur(devis.totalTtcCents)}</div>
+    ${df.remiseCents > 0 ? `<div>Sous-total HT : <b>${eur(df.sousTotalHtCents)}</b></div>
+    <div>Remise ${df.remisePct} % : <b>− ${eur(df.remiseCents)}</b></div>` : ""}
+    <div>Total HT : <b>${eur(df.totalHtCents)}</b></div>
+    <div>TVA ${df.tauxTvaPct} % : <b>${eur(df.tvaCents)}</b></div>
+    <div class="ttc">Total TTC : ${eur(df.totalTtcCents)}</div>
+    ${df.acompteCents > 0 ? `<div>Acompte ${df.acomptePct} % à la commande : <b>${eur(df.acompteCents)}</b></div>` : ""}
   </div>
 
   <h2>Alertes &amp; vérifications</h2>

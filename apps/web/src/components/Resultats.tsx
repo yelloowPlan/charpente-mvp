@@ -4,6 +4,7 @@ import {
   type Entreprise,
   type Client,
   genererOssature3D,
+  appliquerRemise,
   etudeVersHtml,
   nomenclatureVersCsv,
   debitVersCsv,
@@ -22,6 +23,8 @@ interface Props {
   client?: Client;
   numeroDevis?: string;
   validiteJours?: number;
+  remisePct?: number;
+  acomptePct?: number;
 }
 
 export function Resultats({
@@ -31,8 +34,11 @@ export function Resultats({
   client,
   numeroDevis,
   validiteJours,
+  remisePct = 0,
+  acomptePct = 0,
 }: Props) {
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
+  const df = appliquerRemise(devis, remisePct, acomptePct);
 
   const poutres = useMemo(
     () => genererOssature3D(p, g, nom.nbPannesIntermediairesParPan),
@@ -50,6 +56,8 @@ export function Resultats({
       numeroDevis,
       dateDevis,
       validiteJours,
+      remisePct,
+      acomptePct,
     });
 
   // Nom de fichier lisible : n° de devis ou nom du chantier, sinon « charpente ».
@@ -170,13 +178,28 @@ export function Resultats({
           </tbody>
         </table>
         <div className="totaux">
+          {df.remiseCents > 0 && (
+            <>
+              <div>
+                Sous-total HT : <b>{euros(df.sousTotalHtCents)}</b>
+              </div>
+              <div>
+                Remise {df.remisePct} % : <b>− {euros(df.remiseCents)}</b>
+              </div>
+            </>
+          )}
           <div>
-            Total HT : <b>{euros(devis.totalHtCents)}</b>
+            Total HT : <b>{euros(df.totalHtCents)}</b>
           </div>
           <div>
-            TVA {devis.tauxTvaPct} % : <b>{euros(devis.tvaCents)}</b>
+            TVA {df.tauxTvaPct} % : <b>{euros(df.tvaCents)}</b>
           </div>
-          <div className="ttc">Total TTC : {euros(devis.totalTtcCents)}</div>
+          <div className="ttc">Total TTC : {euros(df.totalTtcCents)}</div>
+          {df.acompteCents > 0 && (
+            <div>
+              Acompte {df.acomptePct} % : <b>{euros(df.acompteCents)}</b>
+            </div>
+          )}
         </div>
       </div>
 
