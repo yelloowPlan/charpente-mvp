@@ -7,6 +7,7 @@ import {
   genererLattage3D,
   genererCouverture3D,
   planMasseSvg,
+  planDxf,
   metreCouverture,
   appliquerRemise,
   etudeVersHtml,
@@ -128,6 +129,7 @@ export function Resultats({
         <button onClick={() => telecharger("debit.csv", debitVersCsv(debit), "text/csv")}>⬇ Débit CSV</button>
         <button onClick={() => telecharger("nomenclature.csv", nomenclatureVersCsv(nom), "text/csv")}>⬇ Nomenclature CSV</button>
         <button onClick={() => telecharger("plan-de-coupe.csv", planDeCoupeVersCsv(debit), "text/csv")}>⬇ Plan de coupe</button>
+        <button onClick={() => telecharger(`plan-${slug}.dxf`, planDxf(p, g), "application/dxf")}>⬇ Plan DXF</button>
       </div>
 
       <div className="bloc">

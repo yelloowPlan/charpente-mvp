@@ -35,4 +35,6 @@ export {
 export { nomenclatureVersCsv, debitVersCsv, devisVersCsv, planDeCoupeVersCsv } from "./export/csv.ts";
 export { coupeTransversaleSvg, type ParamsCoupe } from "./export/schema-svg.ts";
 export { planMasseSvg } from "./export/plan-svg.ts";
+export { planDxf } from "./export/dxf.ts";
+export { segmentsPlan, type SegmentPlan, type TypeSegment } from "./engine/plan-geometry.ts";
 export { etudeVersHtml, type OptionsHtml } from "./export/html.ts";
