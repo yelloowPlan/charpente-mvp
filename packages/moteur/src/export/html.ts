@@ -146,7 +146,7 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Étude de charpente</title>
 <style>
-  :root { --encre:#1f2937; --gris:#64748b; --trait:#e2e8f0; --accent:#b45309; }
+  :root { --encre:#1c1917; --gris:#78716c; --trait:#e7e5e4; --accent:#b45309; }
   * { box-sizing: border-box; }
   body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--encre);
          max-width: 920px; margin: 24px auto; padding: 0 20px; line-height: 1.45; }

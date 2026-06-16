@@ -74,23 +74,25 @@ export function coupeTransversaleSvg(p: ParamsCoupe): string {
     .join("");
 
   return [
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VW} ${VH}" font-family="system-ui, sans-serif">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VW} ${VH}" role="img" font-family="system-ui, sans-serif">`,
+    `<title>Coupe transversale ${appentis ? "appentis" : "deux pans"} — portée ${W.toFixed(2)} m, hauteur ${h.toFixed(2)} m</title>`,
+    `<desc>Schéma de la charpente : entrait, ${appentis ? "rampant et mur haut" : "rampants et poinçon"}, et ${nbReperes} repères de pannes.</desc>`,
     `<rect x="0" y="0" width="${VW}" height="${VH}" fill="#ffffff"/>`,
-    `<text x="${VW / 2}" y="24" text-anchor="middle" font-size="14" fill="#1f2937" font-weight="600">Coupe transversale${appentis ? " (appentis)" : ""}</text>`,
+    `<text x="${VW / 2}" y="24" text-anchor="middle" font-size="14" fill="#1c1917" font-weight="600">Coupe transversale${appentis ? " (appentis)" : ""}</text>`,
     // triangle : rampant(s) + entrait
-    `<polygon points="${f(lx)},${f(ly)} ${f(ax)},${f(ay)} ${f(rx)},${f(ry)}" fill="#f8fafc" stroke="#1f2937" stroke-width="2" stroke-linejoin="round"/>`,
+    `<polygon points="${f(lx)},${f(ly)} ${f(ax)},${f(ay)} ${f(rx)},${f(ry)}" fill="#f8fafc" stroke="#1c1917" stroke-width="2" stroke-linejoin="round"/>`,
     // poinçon (2 pans) / mur haut (appentis)
-    `<line x1="${f(px)}" y1="${f(py)}" x2="${f(ax)}" y2="${f(ay)}" stroke="#1f2937" stroke-width="1.5" stroke-dasharray="4 3"/>`,
+    `<line x1="${f(px)}" y1="${f(py)}" x2="${f(ax)}" y2="${f(ay)}" stroke="#1c1917" stroke-width="1.5" stroke-dasharray="4 3"/>`,
     cercles,
     // cote largeur
-    `<text x="${f((lx + rx) / 2)}" y="${f(baseY + 28)}" text-anchor="middle" font-size="12" fill="#475569">W = ${W.toFixed(2)} m</text>`,
+    `<text x="${f((lx + rx) / 2)}" y="${f(baseY + 28)}" text-anchor="middle" font-size="12" fill="#57534e">W = ${W.toFixed(2)} m</text>`,
     // cote hauteur
-    `<text x="${f(ax + 8)}" y="${f((ay + py) / 2)}" font-size="12" fill="#475569">h = ${h.toFixed(2)} m</text>`,
+    `<text x="${f(ax + 8)}" y="${f((ay + py) / 2)}" font-size="12" fill="#57534e">h = ${h.toFixed(2)} m</text>`,
     // pente
-    `<text x="${f(lx + 18)}" y="${f(ly - 10)}" font-size="12" fill="#475569">${p.penteDeg}°</text>`,
+    `<text x="${f(lx + 18)}" y="${f(ly - 10)}" font-size="12" fill="#57534e">${p.penteDeg}°</text>`,
     // légende pannes
     `<circle cx="60" cy="${VH - 16}" r="4" fill="#b45309"/>`,
-    `<text x="72" y="${VH - 12}" font-size="11" fill="#475569">pannes (${nbReperes} en coupe)</text>`,
+    `<text x="72" y="${VH - 12}" font-size="11" fill="#57534e">pannes (${nbReperes} en coupe)</text>`,
     `</svg>`,
   ].join("");
 }

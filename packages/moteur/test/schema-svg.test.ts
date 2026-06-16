@@ -20,6 +20,12 @@ describe("coupeTransversaleSvg", () => {
     assert.ok(svg.trimEnd().endsWith("</svg>"));
   });
 
+  it("est accessible (role img + title + desc)", () => {
+    assert.ok(svg.includes('role="img"'));
+    assert.ok(svg.includes("<title>"));
+    assert.ok(svg.includes("<desc>"));
+  });
+
   it("contient le triangle (polygon) et le poinçon", () => {
     assert.ok(svg.includes("<polygon"));
     assert.ok(svg.includes("stroke-dasharray")); // poinçon en pointillés
