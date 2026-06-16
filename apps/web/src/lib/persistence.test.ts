@@ -150,6 +150,32 @@ describe("persistence — document de devis", () => {
     expect(d?.acomptePct).toBe(0);
   });
 
+  it("assainit des lignes libres corrompues (anti-NaN dans le devis)", () => {
+    const s = fauxMagasin();
+    s.setItem(
+      "charpente.document.v1",
+      JSON.stringify({
+        client: { nom: "", adresse: "", codePostal: "", ville: "" },
+        numeroDevis: "",
+        validiteJours: 30,
+        lignesLibres: [
+          { libelle: "OK", quantite: 2, unite: "u", prixUnitaireCents: 1000, totalHtCents: 2000 },
+          { libelle: "Corrompue", quantite: "x", prixUnitaireCents: null, totalHtCents: "boom" },
+          { pasUneLigne: true },
+          null,
+        ],
+      }),
+    );
+    const d = chargerDocument(s);
+    expect(d).not.toBeNull();
+    // toutes les lignes ont des totaux finis (jamais NaN), recalculés
+    for (const l of d!.lignesLibres) {
+      expect(Number.isFinite(l.totalHtCents)).toBe(true);
+      expect(Number.isFinite(l.quantite) && Number.isFinite(l.prixUnitaireCents)).toBe(true);
+      expect(l.totalHtCents).toBe(Math.round(l.quantite * l.prixUnitaireCents));
+    }
+  });
+
   it("ignore un document corrompu (validité non numérique)", () => {
     const s = fauxMagasin();
     s.setItem(

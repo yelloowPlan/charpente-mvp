@@ -205,6 +205,23 @@ function estDocument(d: unknown): d is DocumentDevis {
   return estClient(o.client) && typeof o.numeroDevis === "string" && typeof o.validiteJours === "number";
 }
 
+/** Nettoie une ligne libre venue du stockage : champs sûrs + total RECALCULÉ
+ *  (on ne fait jamais confiance au total stocké → pas de NaN propagé au devis). */
+function nettoyerLigneLibre(l: unknown): LigneDevis | null {
+  if (typeof l !== "object" || l === null) return null;
+  const o = l as Record<string, unknown>;
+  const nombreSur = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+  const quantite = nombreSur(o.quantite);
+  const prixUnitaireCents = nombreSur(o.prixUnitaireCents);
+  return {
+    libelle: typeof o.libelle === "string" ? o.libelle : "",
+    quantite,
+    unite: typeof o.unite === "string" ? o.unite : "u",
+    prixUnitaireCents,
+    totalHtCents: Math.round(quantite * prixUnitaireCents),
+  };
+}
+
 export function sauverDocument(store: Magasin, doc: DocumentDevis): void {
   ecrire(store, CLE_DOCUMENT, doc);
 }
@@ -222,7 +239,9 @@ export function chargerDocument(store: Magasin): DocumentDevis | null {
       ...d,
       remisePct: typeof o.remisePct === "number" ? o.remisePct : 0,
       acomptePct: typeof o.acomptePct === "number" ? o.acomptePct : 0,
-      lignesLibres: Array.isArray(o.lignesLibres) ? (o.lignesLibres as LigneDevis[]) : [],
+      lignesLibres: Array.isArray(o.lignesLibres)
+        ? o.lignesLibres.map(nettoyerLigneLibre).filter((x): x is LigneDevis => x !== null)
+        : [],
       mentions: typeof o.mentions === "string" ? o.mentions : "",
     };
   } catch {
