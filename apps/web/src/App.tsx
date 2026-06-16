@@ -28,6 +28,9 @@ import {
   chargerDocument,
   sauverDocument,
   documentVide,
+  chargerTarif,
+  sauverTarif,
+  appliquerTarif,
   type ProjetEnregistre,
   type DocumentDevis,
 } from "./lib/persistence.ts";
@@ -41,10 +44,14 @@ type Onglet = "form" | "resultats";
 export default function App() {
   const store = useMemo(() => magasinNavigateur(), []);
 
-  // Restaure le projet de travail (brouillon) si présent, sinon projet par défaut.
-  const [projet, setProjet] = useState<ParametresProjet>(
-    () => chargerBrouillon(store) ?? projetParDefaut(),
-  );
+  // Restaure le projet de travail (brouillon) ; sinon projet par défaut avec le
+  // profil tarifaire mémorisé de l'artisan (s'il existe).
+  const [projet, setProjet] = useState<ParametresProjet>(() => {
+    const brouillon = chargerBrouillon(store);
+    if (brouillon) return brouillon;
+    const tarif = chargerTarif(store);
+    return tarif ? appliquerTarif(projetParDefaut(), tarif) : projetParDefaut();
+  });
   const [projets, setProjets] = useState<ProjetEnregistre[]>(() => listerProjets(store));
   const [nom, setNom] = useState("");
   const [entreprise, setEntreprise] = useState<Entreprise>(
@@ -67,6 +74,12 @@ export default function App() {
   useEffect(() => {
     sauverDocument(store, doc);
   }, [store, doc]);
+
+  // Auto-mémorisation du profil tarifaire (prix de l'artisan), réappliqué aux
+  // nouveaux projets / modèles.
+  useEffect(() => {
+    sauverTarif(store, { prix: projet.prix, essencePrixM3Cents: projet.essence.prixM3Cents });
+  }, [store, projet.prix, projet.essence.prixM3Cents]);
 
   // Le moteur est synchrone et bon marché : on recalcule à chaque changement.
   const resultat = useMemo<Resultat>(() => {
@@ -91,7 +104,8 @@ export default function App() {
   };
   const handleDelete = (id: string) => setProjets(supprimerProjet(store, id));
   const handlePreset = (preset: Preset) => {
-    setProjet(preset.projet);
+    const tarif = chargerTarif(store);
+    setProjet(tarif ? appliquerTarif(preset.projet, tarif) : preset.projet);
     setOnglet("resultats");
   };
 

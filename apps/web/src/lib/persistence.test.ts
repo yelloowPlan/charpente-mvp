@@ -13,6 +13,9 @@ import {
   sauverDocument,
   chargerDocument,
   documentVide,
+  sauverTarif,
+  chargerTarif,
+  appliquerTarif,
 } from "./persistence.ts";
 
 /** Faux magasin en mémoire (pas de navigateur requis). */
@@ -174,6 +177,20 @@ describe("persistence — document de devis", () => {
       expect(Number.isFinite(l.quantite) && Number.isFinite(l.prixUnitaireCents)).toBe(true);
       expect(l.totalHtCents).toBe(Math.round(l.quantite * l.prixUnitaireCents));
     }
+  });
+
+  it("tarif : aller-retour + application à un projet", () => {
+    const s = fauxMagasin();
+    expect(chargerTarif(s)).toBeNull();
+    sauverTarif(s, {
+      prix: { ...projetParDefaut().prix, mainOeuvreHeureCents: 5500 },
+      essencePrixM3Cents: 82000,
+    });
+    const t = chargerTarif(s)!;
+    expect(t.essencePrixM3Cents).toBe(82000);
+    const projet = appliquerTarif(projetParDefaut(), t);
+    expect(projet.prix.mainOeuvreHeureCents).toBe(5500);
+    expect(projet.essence.prixM3Cents).toBe(82000);
   });
 
   it("ignore un document corrompu (validité non numérique)", () => {

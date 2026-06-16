@@ -1,4 +1,4 @@
-import type { ParametresProjet, Entreprise, Client, LigneDevis } from "@charpente/moteur";
+import type { ParametresProjet, Entreprise, Client, LigneDevis, PrixUnitaires } from "@charpente/moteur";
 
 /**
  * Persistance locale des projets (localStorage).
@@ -247,4 +247,41 @@ export function chargerDocument(store: Magasin): DocumentDevis | null {
   } catch {
     return null;
   }
+}
+
+/* ---------- profil tarifaire (prix de l'artisan, persistants) ---------- */
+
+const CLE_TARIF = "charpente.tarif.v1";
+
+export interface Tarif {
+  prix: PrixUnitaires;
+  essencePrixM3Cents: number;
+}
+
+export function sauverTarif(store: Magasin, tarif: Tarif): void {
+  ecrire(store, CLE_TARIF, tarif);
+}
+
+export function chargerTarif(store: Magasin): Tarif | null {
+  try {
+    const brut = store.getItem(CLE_TARIF);
+    if (!brut) return null;
+    const t: unknown = JSON.parse(brut);
+    if (typeof t !== "object" || t === null) return null;
+    const o = t as Record<string, unknown>;
+    if (typeof o.prix !== "object" || o.prix === null) return null;
+    if (typeof o.essencePrixM3Cents !== "number") return null;
+    return t as Tarif;
+  } catch {
+    return null;
+  }
+}
+
+/** Applique un profil tarifaire à un projet (prix + prix du bois). */
+export function appliquerTarif(projet: ParametresProjet, tarif: Tarif): ParametresProjet {
+  return {
+    ...projet,
+    prix: { ...tarif.prix },
+    essence: { ...projet.essence, prixM3Cents: tarif.essencePrixM3Cents },
+  };
 }
