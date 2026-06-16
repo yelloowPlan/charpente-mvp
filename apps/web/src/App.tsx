@@ -175,6 +175,7 @@ export default function App() {
               acomptePct={doc.acomptePct}
               lignesLibres={doc.lignesLibres}
               mentions={doc.mentions}
+              coeffVente={doc.coeffVente}
             />
           ) : (
             <div className="bloc erreurs" role="alert">

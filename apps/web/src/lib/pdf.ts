@@ -22,6 +22,7 @@ export interface OptionsPdf {
   referenceChantier?: string;
   lignesLibres?: LigneDevis[];
   mentions?: string;
+  coeffVente?: number;
 }
 
 const eur = (c: number): string =>
@@ -119,7 +120,7 @@ export async function telechargerDevisPdf(
   y += 8;
 
   // --- Tableau devis ---
-  const df = appliquerRemise(etude.devis, o.remisePct, o.acomptePct, o.lignesLibres);
+  const df = appliquerRemise(etude.devis, o.remisePct, o.acomptePct, o.lignesLibres, o.coeffVente);
   autoTable(doc, {
     startY: y,
     head: [["Désignation", "Qté", "Unité", "PU HT", "Total HT"]],

@@ -43,6 +43,7 @@ interface Props {
   acomptePct?: number;
   lignesLibres?: import("@charpente/moteur").LigneDevis[];
   mentions?: string;
+  coeffVente?: number;
 }
 
 export function Resultats({
@@ -56,9 +57,10 @@ export function Resultats({
   acomptePct = 0,
   lignesLibres = [],
   mentions = "",
+  coeffVente = 1,
 }: Props) {
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
-  const df = appliquerRemise(devis, remisePct, acomptePct, lignesLibres);
+  const df = appliquerRemise(devis, remisePct, acomptePct, lignesLibres, coeffVente);
 
   const poutres = useMemo(
     () => genererOssature3D(p, g, nom.nbPannesIntermediairesParPan),
@@ -101,6 +103,7 @@ export function Resultats({
       acomptePct,
       lignesLibres,
       mentions,
+      coeffVente,
     });
 
   // Nom de fichier lisible : n° de devis ou nom du chantier, sinon « charpente ».
@@ -113,7 +116,7 @@ export function Resultats({
   const exporterPdf = () => {
     void telechargerDevisPdf(
       etude,
-      { entreprise, client, numeroDevis, dateDevis, validiteJours, remisePct, acomptePct, referenceChantier, lignesLibres, mentions },
+      { entreprise, client, numeroDevis, dateDevis, validiteJours, remisePct, acomptePct, referenceChantier, lignesLibres, mentions, coeffVente },
       `devis-${slug}.pdf`,
     ).catch((err) => console.error("Échec génération PDF", err));
   };

@@ -64,6 +64,16 @@ export function PostesAnnexes({ doc, onChange }: Props) {
             + Ajouter un poste
           </button>
           <label className="champ-large">
+            <span>Coefficient de vente (marge — si prix saisis = déboursé)</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              step={0.05}
+              value={doc.coeffVente}
+              onChange={(e) => onChange({ ...doc, coeffVente: Math.max(0.01, Number(e.target.value) || 1) })}
+            />
+          </label>
+          <label className="champ-large">
             <span>Conditions / mentions (CGV)</span>
             <textarea
               rows={3}

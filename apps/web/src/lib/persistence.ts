@@ -179,6 +179,7 @@ export interface DocumentDevis {
   acomptePct: number;
   lignesLibres: LigneDevis[];
   mentions: string;
+  coeffVente: number;
 }
 
 export function documentVide(): DocumentDevis {
@@ -190,6 +191,7 @@ export function documentVide(): DocumentDevis {
     acomptePct: 0,
     lignesLibres: [],
     mentions: "",
+    coeffVente: 1,
   };
 }
 
@@ -243,6 +245,7 @@ export function chargerDocument(store: Magasin): DocumentDevis | null {
         ? o.lignesLibres.map(nettoyerLigneLibre).filter((x): x is LigneDevis => x !== null)
         : [],
       mentions: typeof o.mentions === "string" ? o.mentions : "",
+      coeffVente: typeof o.coeffVente === "number" && o.coeffVente > 0 ? o.coeffVente : 1,
     };
   } catch {
     return null;

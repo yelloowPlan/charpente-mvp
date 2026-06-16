@@ -94,6 +94,18 @@ describe("chiffrerDevis — cohérence comptable", () => {
     assert.equal(ligneLibre("X", 3, "u", 1250).totalHtCents, 3750);
   });
 
+  it("coefficient de vente = 1 ne change rien (golden)", () => {
+    const df = appliquerRemise(devis, 0, 0, [], 1);
+    assert.equal(df.totalTtcCents, devis.totalTtcCents);
+  });
+
+  it("coefficient de vente 1,2 majore le HT d'environ 20 %", () => {
+    const df = appliquerRemise(devis, 0, 0, [], 1.2);
+    assert.ok(df.sousTotalHtCents > devis.totalHtCents);
+    const ratio = df.sousTotalHtCents / devis.totalHtCents;
+    assert.ok(Math.abs(ratio - 1.2) < 0.01, `ratio ${ratio}`);
+  });
+
   it("sections liteau = contre-liteau partagées : répartition correcte (régression)", () => {
     const base = projetParDefaut();
     const sectionCommune = { largeurMm: 27, hauteurMm: 40 };

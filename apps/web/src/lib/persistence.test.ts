@@ -133,6 +133,7 @@ describe("persistence — document de devis", () => {
       acomptePct: 30,
       lignesLibres: [],
       mentions: "",
+      coeffVente: 1,
     });
     const d = chargerDocument(s);
     expect(d?.client.nom).toBe("M. Martin");

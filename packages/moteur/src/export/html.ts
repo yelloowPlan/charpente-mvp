@@ -33,6 +33,8 @@ export interface OptionsHtml {
   lignesLibres?: LigneDevis[];
   /** conditions générales / mentions à imprimer en pied de devis */
   mentions?: string;
+  /** coefficient de vente (marge) appliqué aux lignes calculées */
+  coeffVente?: number;
 }
 
 const esc = (s: string): string =>
@@ -92,7 +94,7 @@ const nb = (n: number, dec = 2): string =>
 
 export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
-  const df = appliquerRemise(devis, options.remisePct, options.acomptePct, options.lignesLibres);
+  const df = appliquerRemise(devis, options.remisePct, options.acomptePct, options.lignesLibres, options.coeffVente);
 
   const svg = coupeTransversaleSvg({
     largeurM: p.batiment.largeurM,
