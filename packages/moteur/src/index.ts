@@ -8,6 +8,8 @@ export {
   chargeElsKNm2,
   porteeAdmissibleFlecheM,
   chargeNeigeSolKNm2,
+  fmdMPa,
+  contrainteFlexionMPa,
   type ZoneNeige,
 } from "./engine/structure.ts";
 export { genererNomenclature, type ResultatNomenclature } from "./engine/nomenclature.ts";

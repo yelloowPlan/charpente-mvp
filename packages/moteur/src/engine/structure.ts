@@ -34,6 +34,36 @@ const SK0_ZONE: Record<ZoneNeige, number> = {
  * nationale française : valeur de base par zone + supplément d'altitude (piecewise).
  * INDICATIF — à confirmer par la carte officielle / un bureau d'études.
  */
+/** Résistance caractéristique en flexion f_m,k (MPa) par classe de résistance. */
+const FMK: Record<string, number> = { C18: 18, C24: 24, C30: 30 };
+
+/**
+ * Résistance de calcul en flexion f_m,d (MPa) = k_mod · f_m,k / γ_M.
+ * Par défaut : k_mod 0,8 (moyen terme, classe de service 2), γ_M 1,3 (bois massif).
+ * INDICATIF.
+ */
+export function fmdMPa(classe: string, kmod = 0.8, gammaM = 1.3): number {
+  return (kmod * (FMK[classe] ?? 24)) / gammaM;
+}
+
+/**
+ * Contrainte de flexion (MPa) d'une poutre sur appuis simples, charge répartie :
+ * σ = M / W_él, M = q·entraxe·ℓ²/8, W_él = b·h²/6. INDICATIF (pas de cisaillement,
+ * déversement ni assemblages).
+ */
+export function contrainteFlexionMPa(
+  section: Section,
+  entraxeM: number,
+  porteeM: number,
+  chargeKNm2: number,
+): number {
+  const w = chargeKNm2 * entraxeM; // N/mm
+  const l = porteeM * 1000; // mm
+  const M = (w * l * l) / 8; // N·mm
+  const Wel = (section.largeurMm * section.hauteurMm * section.hauteurMm) / 6; // mm³
+  return Wel > 0 ? M / Wel : Infinity;
+}
+
 export function chargeNeigeSolKNm2(zone: ZoneNeige, altitudeM: number): number {
   const sk0 = SK0_ZONE[zone] ?? 0.45;
   const A = Math.max(0, altitudeM);

@@ -3,6 +3,7 @@ import { calculerGeometrie, type GeometrieToit } from "./geometrie.ts";
 import { genererNomenclature, type ResultatNomenclature } from "./nomenclature.ts";
 import { planifierDebit, type PlanDebit } from "./debit.ts";
 import { chiffrerDevis, type Devis } from "./devis.ts";
+import { contrainteFlexionMPa, fmdMPa } from "./structure.ts";
 
 /** Erreur levée lorsqu'au moins une règle de validation bloquante échoue. */
 export class ErreurValidation extends Error {
@@ -119,13 +120,33 @@ export function etudier(p: ParametresProjet): Etude {
         `Portée admissible chevron ≈ ${nomenclature.porteeAdmissibleChevronM.toFixed(2)} m ` +
         `(flèche ELS L/300) → ${nomenclature.nbPannesIntermediairesParPan} panne(s) intermédiaire(s) par pan.`,
     },
-    {
-      niveau: "info",
-      message:
-        "Vérifications structurelles INDICATIVES (flèche ELS uniquement). " +
-        "Ne remplacent pas une note de calcul Eurocode 5 — faire valider par un bureau d'études.",
-    },
   ];
+
+  // Vérification de flexion ELU (indicative) au droit de la portée admissible.
+  const gKNm2 = (p.toiture.couverture.poidsKgM2 * 9.81) / 1000;
+  const qElu = 1.35 * gKNm2 + 1.5 * p.charges.neigeKNm2;
+  const sigma = contrainteFlexionMPa(
+    p.charpente.sections.chevron,
+    p.charpente.entraxeChevronM,
+    nomenclature.porteeAdmissibleChevronM,
+    qElu,
+  );
+  const fmd = fmdMPa(p.essence.classe);
+  const utilPct = fmd > 0 ? Math.round((sigma / fmd) * 100) : 999;
+  alertes.push({
+    niveau: utilPct > 100 ? "attention" : "info",
+    message:
+      `Flexion chevron ELU ≈ ${utilPct} % de f_m,d (${p.essence.classe}, k_mod 0,8) ` +
+      `${utilPct > 100 ? "— DÉPASSEMENT : section/portée à revoir." : "— marge OK"}.`,
+  });
+
+  alertes.push({
+    niveau: "info",
+    message:
+      "Vérifications structurelles INDICATIVES (flèche ELS + flexion ELU simplifiées). " +
+      "Ne remplacent pas une note de calcul Eurocode 5 (cisaillement, déversement, " +
+      "assemblages, combinaisons) — faire valider par un bureau d'études.",
+  });
 
   if (geometrie.nbPans === 1) {
     alertes.push({

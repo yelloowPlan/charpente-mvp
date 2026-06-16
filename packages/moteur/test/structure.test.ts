@@ -6,7 +6,26 @@ import {
   porteeAdmissibleFlecheM,
   chargeElsKNm2,
   chargeNeigeSolKNm2,
+  fmdMPa,
+  contrainteFlexionMPa,
 } from "../src/engine/structure.ts";
+
+describe("flexion EC5 (indicatif)", () => {
+  it("f_m,d C24 ≈ 14,8 MPa (k_mod 0,8 / γ_M 1,3)", () => {
+    closeTo(fmdMPa("C24"), (0.8 * 24) / 1.3, 2);
+  });
+  it("contrainte de flexion croît avec la portée²", () => {
+    const sec = { largeurMm: 63, hauteurMm: 75 };
+    const s2 = contrainteFlexionMPa(sec, 0.45, 2, 1);
+    const s4 = contrainteFlexionMPa(sec, 0.45, 4, 1);
+    closeTo(s4 / s2, 4, 1); // ℓ² → ×4 pour ℓ doublé
+  });
+  it("contrainte décroît si la section grandit (h²)", () => {
+    const s1 = contrainteFlexionMPa({ largeurMm: 63, hauteurMm: 75 }, 0.45, 2.5, 1);
+    const s2 = contrainteFlexionMPa({ largeurMm: 63, hauteurMm: 100 }, 0.45, 2.5, 1);
+    assert.ok(s2 < s1);
+  });
+});
 import { projetParDefaut } from "../src/domain/defaults.ts";
 import { closeTo } from "./helpers.ts";
 
