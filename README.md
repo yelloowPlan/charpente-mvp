@@ -64,7 +64,7 @@ Prérequis : **Node ≥ 22.18** (le moteur tourne en TypeScript natif, sans buil
 
 ```bash
 pnpm install
-pnpm test          # tous les packages : 77 tests moteur + 22 tests web (rendu + persistance)
+pnpm test          # tous les packages : 143 tests moteur (dont matrice robustesse) + 22 tests web
 pnpm type-check    # tous les packages (tsc --noEmit strict)
 pnpm dev           # lance le configurateur web (Vite, http://localhost:5173)
 pnpm build:web     # build de production de l'app web
