@@ -138,10 +138,11 @@ export function etudier(p: ParametresProjet): Etude {
 
   if (p.toiture.typologie === "croupe") {
     alertes.push({
-      niveau: "attention",
+      niveau: "info",
       message:
-        "Croupe : arêtiers, faîtage et sablières exacts ; chevrons et liteaux ESTIMÉS " +
-        "(surface ÷ entraxe / pureau, ±5-10 %). Empannons et coupes composées à affiner par le pro.",
+        "Croupe régulière à pente égale : chevrons communs, empannons décroissants, " +
+        "arêtiers, faîtage et sablières calculés. Les coupes composées (dévers d'arêtier) " +
+        "restent à tracer par le charpentier.",
     });
     if (p.batiment.longueurM < p.batiment.largeurM) {
       alertes.push({

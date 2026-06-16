@@ -41,7 +41,7 @@ export function genererNomenclature(
 
   if (p.toiture.typologie === "croupe") {
     genererCroupe(p, g, elements, nbPannesIntermediairesParPan);
-    return { elements, porteeAdmissibleChevronM, nbPannesIntermediairesParPan, estimation: true };
+    return { elements, porteeAdmissibleChevronM, nbPannesIntermediairesParPan, estimation: false };
   }
 
   const np = g.nbPans; // 1 (appentis) ou 2 (deux pans)
@@ -130,35 +130,64 @@ function genererCroupe(
   const c = p.charpente;
   const surface = g.surfaceToitureM2;
 
-  // Chevrons (estimés)
-  const nbChevrons = Math.max(1, Math.round(surface / c.entraxeChevronM / g.rampantM));
+  // Layout exact de croupe régulière (pente égale) : chevrons communs + empannons.
+  const W = p.batiment.largeurM;
+  const d = p.batiment.debordRampantM;
+  const entraxe = c.entraxeChevronM;
+  const cos = Math.cos((p.toiture.penteDeg * Math.PI) / 180);
+  const demi = W / 2;
+  const R = g.rampantM;
+
+  // Chevrons communs : sur la longueur de faîtage (2 longs pans) + 2 centraux de croupe
+  const nCommonMain = (Math.floor(g.longueurFaitageM / entraxe) + 1) * 2;
+  const nCommon = nCommonMain + 2;
   elements.push({
     role: "chevron",
-    nom: "Chevron (estimé)",
-    longueurM: g.rampantM,
+    nom: "Chevron commun",
+    longueurM: R,
     section: c.sections.chevron,
-    quantite: nbChevrons,
+    quantite: nCommon,
     modeDebit: "barre",
-    formule: `estimation : surface ${surface.toFixed(0)} m² ÷ entraxe ${c.entraxeChevronM} ÷ rampant ${g.rampantM.toFixed(2)} m`,
+    formule: `${nCommonMain} (longs pans, sur le faîtage) + 2 (centraux des croupes)`,
   });
 
-  // Liteaux (estimés)
+  // Empannons (jacks) décroissants : 8 par position (4 régions de croupe sur les
+  // longs pans + 4 demi-croupes). Longueur à la position j = (W/2 − j·entraxe + d)/cos α.
+  const m = Math.max(0, Math.floor((demi - 1e-9) / entraxe));
+  let totalJackMl = 0;
+  for (let j = 1; j <= m; j++) totalJackMl += (demi - j * entraxe + d) / cos;
+  totalJackMl *= 8;
+  const totalJacks = 8 * m;
+  if (totalJacks > 0) {
+    elements.push({
+      role: "chevron",
+      nom: "Empannon",
+      longueurM: totalJackMl / totalJacks,
+      section: c.sections.chevron,
+      quantite: totalJacks,
+      modeDebit: "barre",
+      formule: `8 × ${m} empannons décroissants (croupe régulière à pente égale)`,
+    });
+  }
+  const nbChevrons = nCommon + totalJacks;
+
+  // Liteaux (exact : la liteaunage couvre la surface développée)
   const nbRangs = Math.max(1, Math.round(surface / p.toiture.couverture.pureauM / g.longueurPanM));
   elements.push({
     role: "liteau",
-    nom: "Liteau (estimé)",
+    nom: "Liteau",
     longueurM: g.longueurPanM,
     section: c.sections.liteau,
     quantite: nbRangs,
     modeDebit: "lineaire",
-    formule: `estimation : surface ÷ pureau ${p.toiture.couverture.pureauM} m`,
+    formule: `surface ${surface.toFixed(0)} m² ÷ pureau ${p.toiture.couverture.pureauM} m`,
   });
 
-  // Contre-liteaux (si écran)
+  // Contre-liteaux (si écran) : 1 par chevron
   if (c.ecranSousToiture) {
     elements.push({
       role: "contre_liteau",
-      nom: "Contre-liteau (estimé)",
+      nom: "Contre-liteau",
       longueurM: g.rampantM,
       section: c.sections.contreLiteau,
       quantite: nbChevrons,
@@ -196,11 +225,11 @@ function genererCroupe(
   elements.push({ role: "panne_sabliere", nom: "Sablière (longs pans)", longueurM: g.longueurPanM, section: c.sections.panne, quantite: 2, modeDebit: "barre", formule: "2 sablières sur les longs côtés" });
   elements.push({ role: "panne_sabliere", nom: "Sablière (croupes)", longueurM: courtSabliere, section: c.sections.panne, quantite: 2, modeDebit: "barre", formule: "2 sablières sur les pans de croupe" });
 
-  // Pannes intermédiaires sur les longs pans (estimé)
+  // Pannes intermédiaires sur les longs pans
   if (nbInter > 0) {
     elements.push({
       role: "panne_intermediaire",
-      nom: "Panne intermédiaire (longs pans, estimé)",
+      nom: "Panne intermédiaire (longs pans)",
       longueurM: g.longueurFaitageM > 0 ? g.longueurFaitageM : g.longueurPanM,
       section: c.sections.panne,
       quantite: 2 * nbInter,

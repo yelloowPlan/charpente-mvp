@@ -28,7 +28,7 @@ describe("croupe — nomenclature", () => {
   const q = (role: RoleElement) =>
     nom.elements.filter((e) => e.role === role).reduce((s, e) => s + e.quantite, 0);
 
-  it("marquée comme estimation", () => assert.equal(nom.estimation, true));
+  it("calculée (plus une simple estimation area-based)", () => assert.equal(nom.estimation, false));
   it("4 arêtiers exacts", () => assert.equal(q("aretier"), 4));
   it("1 faîtière (raccourcie)", () => assert.equal(q("panne_faitiere"), 1));
   it("4 sablières de périmètre", () => assert.equal(q("panne_sabliere"), 4));
@@ -37,10 +37,22 @@ describe("croupe — nomenclature", () => {
     assert.equal(q("ferme_arbaletrier"), 0);
     assert.equal(q("ferme_poincon"), 0);
   });
-  it("chevrons & liteaux présents et étiquetés estimés", () => {
+  it("chevrons décomposés en communs + empannons", () => {
     assert.ok(q("chevron") > 0);
     assert.ok(q("liteau") > 0);
-    assert.ok(nom.elements.find((e) => e.role === "chevron")!.nom.includes("estimé"));
+    const noms = nom.elements.filter((e) => e.role === "chevron").map((e) => e.nom);
+    assert.ok(noms.includes("Chevron commun"));
+    assert.ok(noms.includes("Empannon"));
+  });
+
+  it("chevron ml total ≈ surface ÷ entraxe (cohérence area-based)", () => {
+    const g = calculerGeometrie(p);
+    const ml = nom.elements
+      .filter((e) => e.role === "chevron")
+      .reduce((s, e) => s + e.quantite * e.longueurM, 0);
+    const attendu = g.surfaceToitureM2 / p.charpente.entraxeChevronM;
+    // tolérance large : le layout exact diffère un peu de l'aire/entraxe
+    assert.ok(Math.abs(ml - attendu) / attendu < 0.2, `ml ${ml.toFixed(1)} vs ${attendu.toFixed(1)}`);
   });
 });
 
