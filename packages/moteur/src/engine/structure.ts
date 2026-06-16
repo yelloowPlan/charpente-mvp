@@ -16,6 +16,34 @@ export function aireSectionM2(s: Section): number {
   return (s.largeurMm / 1000) * (s.hauteurMm / 1000);
 }
 
+/** Zones de neige françaises (EN 1991-1-3 / NA). */
+export type ZoneNeige = "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "D" | "E";
+const SK0_ZONE: Record<ZoneNeige, number> = {
+  A1: 0.45,
+  A2: 0.45,
+  B1: 0.55,
+  B2: 0.55,
+  C1: 0.65,
+  C2: 0.65,
+  D: 0.9,
+  E: 1.4,
+};
+
+/**
+ * Charge de neige caractéristique au sol sk (kN/m²), EN 1991-1-3 / annexe
+ * nationale française : valeur de base par zone + supplément d'altitude (piecewise).
+ * INDICATIF — à confirmer par la carte officielle / un bureau d'études.
+ */
+export function chargeNeigeSolKNm2(zone: ZoneNeige, altitudeM: number): number {
+  const sk0 = SK0_ZONE[zone] ?? 0.45;
+  const A = Math.max(0, altitudeM);
+  let sDelta = 0;
+  if (A > 1000) sDelta = (A * 7) / 1000 - 4.8;
+  else if (A > 500) sDelta = (A * 3.5) / 1000 - 1.3;
+  else if (A > 200) sDelta = (A * 1.5) / 1000 - 0.3;
+  return Math.round((sk0 + sDelta) * 100) / 100;
+}
+
 /** Moment quadratique I (flexion sur l'axe fort), en mm⁴ : I = b·h³/12. */
 export function momentQuadratiqueMm4(s: Section): number {
   return (s.largeurMm * Math.pow(s.hauteurMm, 3)) / 12;

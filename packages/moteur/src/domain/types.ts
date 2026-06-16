@@ -78,6 +78,10 @@ export interface ParametresCharpente {
 export interface Charges {
   /** charge de neige caractéristique S (kN/m²) — dépend zone/altitude (EN 1991-1-3) */
   neigeKNm2: number;
+  /** zone de neige (EN 1991-1-3 / NA) — optionnel, pour l'assistant de calcul */
+  zoneNeige?: string;
+  /** altitude du chantier (m) — optionnel, pour l'assistant de calcul */
+  altitudeM?: number;
 }
 
 export interface Essence {

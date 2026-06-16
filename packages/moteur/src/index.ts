@@ -7,6 +7,8 @@ export {
   momentQuadratiqueMm4,
   chargeElsKNm2,
   porteeAdmissibleFlecheM,
+  chargeNeigeSolKNm2,
+  type ZoneNeige,
 } from "./engine/structure.ts";
 export { genererNomenclature, type ResultatNomenclature } from "./engine/nomenclature.ts";
 export { planifierDebit, type PlanDebit, type PlanSection, type BarreDebitee } from "./engine/debit.ts";

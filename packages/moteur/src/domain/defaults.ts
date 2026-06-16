@@ -35,7 +35,7 @@ export function projetParDefaut(
         contreLiteau: { largeurMm: 22, hauteurMm: 40 },
       },
     },
-    charges: { neigeKNm2: 0.45 },
+    charges: { neigeKNm2: 0.45, zoneNeige: "A1", altitudeM: 0 },
     essence: {
       nom: "Sapin/Épicéa",
       classe: "C24",

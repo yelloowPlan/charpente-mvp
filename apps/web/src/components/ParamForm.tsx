@@ -4,7 +4,9 @@ import type {
   Couverture,
   ParametresCharpente,
   TypeToiture,
+  ZoneNeige,
 } from "@charpente/moteur";
+import { chargeNeigeSolKNm2 } from "@charpente/moteur";
 
 /** Presets de couverture (pureau + poids surfacique). */
 const COUVERTURES: Record<string, { pureauM: number; poidsKgM2: number }> = {
@@ -31,6 +33,17 @@ export function ParamForm({ projet, onChange }: Props) {
 
   const setTypologie = (t: string) =>
     onChange({ ...projet, toiture: { ...projet.toiture, typologie: t as TypeToiture } });
+
+  const setNeige = (zone: string, altitude: number) =>
+    onChange({
+      ...projet,
+      charges: {
+        ...projet.charges,
+        zoneNeige: zone,
+        altitudeM: altitude,
+        neigeKNm2: chargeNeigeSolKNm2(zone as ZoneNeige, altitude),
+      },
+    });
 
   const setCouv = <K extends keyof Couverture>(k: K, v: Couverture[K]) =>
     onChange({
@@ -112,6 +125,25 @@ export function ParamForm({ projet, onChange }: Props) {
         />
         <Nombre label="Pureau (m)" value={c.pureauM} step={0.01} onChange={(v) => setCouv("pureauM", v)} />
         <Nombre label="Poids couverture (kg/m²)" value={c.poidsKgM2} step={1} onChange={(v) => setCouv("poidsKgM2", v)} />
+        <Select
+          label="Zone neige"
+          value={projet.charges.zoneNeige ?? "A1"}
+          options={[
+            ["A1", "A1"], ["A2", "A2"], ["B1", "B1"], ["B2", "B2"],
+            ["C1", "C1"], ["C2", "C2"], ["D", "D"], ["E", "E"],
+          ]}
+          onChange={(z) => setNeige(z, projet.charges.altitudeM ?? 0)}
+        />
+        <Nombre
+          label="Altitude (m)"
+          value={projet.charges.altitudeM ?? 0}
+          step={50}
+          onChange={(a) => setNeige(projet.charges.zoneNeige ?? "A1", a)}
+        />
+        <div className="champ">
+          <span>Charge neige (auto)</span>
+          <strong>{projet.charges.neigeKNm2.toLocaleString("fr-FR")} kN/m²</strong>
+        </div>
       </fieldset>
 
       <fieldset>

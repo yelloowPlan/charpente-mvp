@@ -5,9 +5,28 @@ import {
   momentQuadratiqueMm4,
   porteeAdmissibleFlecheM,
   chargeElsKNm2,
+  chargeNeigeSolKNm2,
 } from "../src/engine/structure.ts";
 import { projetParDefaut } from "../src/domain/defaults.ts";
 import { closeTo } from "./helpers.ts";
+
+describe("chargeNeigeSolKNm2 — EN 1991-1-3 / NA", () => {
+  it("zone A1 au sol = 0,45 kN/m²", () => {
+    assert.equal(chargeNeigeSolKNm2("A1", 0), 0.45);
+  });
+  it("zone E au sol = 1,40 kN/m²", () => {
+    assert.equal(chargeNeigeSolKNm2("E", 100), 1.4);
+  });
+  it("supplément d'altitude continu à 500 m (A1 → 0,90)", () => {
+    closeTo(chargeNeigeSolKNm2("A1", 500), 0.9, 2);
+  });
+  it("supplément d'altitude à 1000 m (A1 → 2,65)", () => {
+    closeTo(chargeNeigeSolKNm2("A1", 1000), 2.65, 2);
+  });
+  it("croît avec l'altitude", () => {
+    assert.ok(chargeNeigeSolKNm2("C2", 800) > chargeNeigeSolKNm2("C2", 200));
+  });
+});
 
 describe("structure — fonctions de base", () => {
   it("aire de section 75×225 = 0,016875 m²", () => {
