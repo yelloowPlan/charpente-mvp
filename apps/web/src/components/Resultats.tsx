@@ -124,15 +124,22 @@ export function Resultats({
   return (
     <div className="resultats">
       <div className="export-bar">
-        <button onClick={exporterPdf}>⬇ Devis PDF</button>
-        <button onClick={() => telecharger(`devis-${slug}.html`, htmlEtude(), "text/html")}>
-          ⬇ Étude HTML (imprimable)
-        </button>
-        <button onClick={() => telecharger("devis.csv", devisVersCsv(devis), "text/csv")}>⬇ Devis CSV</button>
-        <button onClick={() => telecharger("debit.csv", debitVersCsv(debit), "text/csv")}>⬇ Débit CSV</button>
-        <button onClick={() => telecharger("nomenclature.csv", nomenclatureVersCsv(nom), "text/csv")}>⬇ Nomenclature CSV</button>
-        <button onClick={() => telecharger("plan-de-coupe.csv", planDeCoupeVersCsv(debit), "text/csv")}>⬇ Plan de coupe</button>
-        <button onClick={() => telecharger(`plan-${slug}.dxf`, planDxf(p, g), "application/dxf")}>⬇ Plan DXF</button>
+        <div className="export-groupe">
+          <span className="export-titre">Devis</span>
+          <button onClick={exporterPdf}>⬇ PDF</button>
+          <button onClick={() => telecharger(`devis-${slug}.html`, htmlEtude(), "text/html")}>⬇ HTML imprimable</button>
+          <button onClick={() => telecharger("devis.csv", devisVersCsv(devis), "text/csv")}>⬇ CSV</button>
+        </div>
+        <div className="export-groupe">
+          <span className="export-titre">Technique</span>
+          <button onClick={() => telecharger(`plan-${slug}.dxf`, planDxf(p, g), "application/dxf")}>⬇ Plan DXF</button>
+          <button onClick={() => telecharger("nomenclature.csv", nomenclatureVersCsv(nom), "text/csv")}>⬇ Nomenclature</button>
+        </div>
+        <div className="export-groupe">
+          <span className="export-titre">Atelier</span>
+          <button onClick={() => telecharger("debit.csv", debitVersCsv(debit), "text/csv")}>⬇ Débit</button>
+          <button onClick={() => telecharger("plan-de-coupe.csv", planDeCoupeVersCsv(debit), "text/csv")}>⬇ Plan de coupe</button>
+        </div>
       </div>
 
       <div className="bloc">

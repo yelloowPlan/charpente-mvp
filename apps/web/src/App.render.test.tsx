@@ -39,9 +39,10 @@ describe("App — rendu statique du projet par défaut", () => {
     expect(html).toMatch(/Total HT/);
   });
 
-  it("expose les boutons d'export", () => {
-    expect(html).toContain("Étude HTML");
-    expect(html).toContain("Devis CSV");
+  it("expose les groupes d'export (Devis / Technique / Atelier)", () => {
+    expect(html).toContain("HTML imprimable");
+    expect(html).toContain("Plan DXF");
+    expect(html).toContain("Plan de coupe");
   });
 
   it("affiche le disclaimer Eurocode 5", () => {

@@ -618,8 +618,26 @@ th.num {
 .export-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 16px;
   margin-bottom: 18px;
+}
+.export-groupe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+.export-titre {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gris);
+  margin-right: 2px;
 }
 .export-bar button {
   background: var(--accent);
