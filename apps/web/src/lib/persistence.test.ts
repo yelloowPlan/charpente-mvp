@@ -128,6 +128,8 @@ describe("persistence — document de devis", () => {
       validiteJours: 45,
       remisePct: 5,
       acomptePct: 30,
+      lignesLibres: [],
+      mentions: "",
     });
     const d = chargerDocument(s);
     expect(d?.client.nom).toBe("M. Martin");

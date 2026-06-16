@@ -13,6 +13,7 @@ export { planifierDebit, type PlanDebit, type PlanSection, type BarreDebitee } f
 export {
   chiffrerDevis,
   appliquerRemise,
+  ligneLibre,
   type Devis,
   type DevisFinal,
   type LigneDevis,

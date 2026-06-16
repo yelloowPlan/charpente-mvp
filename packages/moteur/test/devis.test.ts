@@ -4,7 +4,7 @@ import { projetParDefaut } from "../src/domain/defaults.ts";
 import { calculerGeometrie } from "../src/engine/geometrie.ts";
 import { genererNomenclature } from "../src/engine/nomenclature.ts";
 import { planifierDebit } from "../src/engine/debit.ts";
-import { chiffrerDevis, appliquerRemise } from "../src/engine/devis.ts";
+import { chiffrerDevis, appliquerRemise, ligneLibre } from "../src/engine/devis.ts";
 import { closeTo } from "./helpers.ts";
 
 function devisDeReference() {
@@ -80,6 +80,18 @@ describe("chiffrerDevis — cohérence comptable", () => {
   it("acompte = % du TTC", () => {
     const df = appliquerRemise(devis, 0, 30);
     assert.equal(df.acompteCents, Math.round(df.totalTtcCents * 0.3));
+  });
+
+  it("lignes libres : ajoutées aux lignes et au sous-total", () => {
+    const ll = [ligneLibre("Échafaudage", 1, "forfait", 80000), ligneLibre("Dépose", 50, "m²", 1500)];
+    const df = appliquerRemise(devis, 0, 0, ll);
+    assert.ok(df.lignes.some((l) => l.libelle === "Échafaudage"));
+    assert.equal(df.sousTotalHtCents, devis.totalHtCents + 80000 + 50 * 1500);
+    assert.equal(df.totalHtCents, df.sousTotalHtCents);
+  });
+
+  it("ligneLibre calcule le total = quantité × PU", () => {
+    assert.equal(ligneLibre("X", 3, "u", 1250).totalHtCents, 3750);
   });
 
   it("sections liteau = contre-liteau partagées : répartition correcte (régression)", () => {

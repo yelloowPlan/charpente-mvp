@@ -1,4 +1,10 @@
-import { appliquerRemise, type Etude, type Entreprise, type Client } from "@charpente/moteur";
+import {
+  appliquerRemise,
+  type Etude,
+  type Entreprise,
+  type Client,
+  type LigneDevis,
+} from "@charpente/moteur";
 
 /**
  * Génère et télécharge un devis PDF soigné. jsPDF est importé dynamiquement :
@@ -14,6 +20,8 @@ export interface OptionsPdf {
   remisePct?: number;
   acomptePct?: number;
   referenceChantier?: string;
+  lignesLibres?: LigneDevis[];
+  mentions?: string;
 }
 
 const eur = (c: number): string =>
@@ -111,7 +119,7 @@ export async function telechargerDevisPdf(
   y += 8;
 
   // --- Tableau devis ---
-  const df = appliquerRemise(etude.devis, o.remisePct, o.acomptePct);
+  const df = appliquerRemise(etude.devis, o.remisePct, o.acomptePct, o.lignesLibres);
   autoTable(doc, {
     startY: y,
     head: [["Désignation", "Qté", "Unité", "PU HT", "Total HT"]],
@@ -152,8 +160,14 @@ export async function telechargerDevisPdf(
   ligneTotal("Total TTC", eur(df.totalTtcCents), true);
   if (df.acompteCents > 0) ligneTotal(`Acompte ${df.acomptePct} %`, eur(df.acompteCents));
 
-  // --- Pied ---
+  // --- Mentions / CGV ---
   const H = doc.internal.pageSize.getHeight();
+  if (o.mentions && o.mentions.trim()) {
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...GRIS);
+    doc.text(doc.splitTextToSize(o.mentions, W - 2 * M), M, Math.max(yT + 6, H - 30));
+  }
+
+  // --- Pied ---
   doc.setFont("helvetica", "italic").setFontSize(7.5).setTextColor(...GRIS);
   doc.text(
     "Estimation indicative — vérifications structurelles (flèche ELS) ne remplaçant pas une note de calcul Eurocode 5.",

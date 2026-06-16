@@ -38,6 +38,8 @@ interface Props {
   validiteJours?: number;
   remisePct?: number;
   acomptePct?: number;
+  lignesLibres?: import("@charpente/moteur").LigneDevis[];
+  mentions?: string;
 }
 
 export function Resultats({
@@ -49,9 +51,11 @@ export function Resultats({
   validiteJours,
   remisePct = 0,
   acomptePct = 0,
+  lignesLibres = [],
+  mentions = "",
 }: Props) {
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
-  const df = appliquerRemise(devis, remisePct, acomptePct);
+  const df = appliquerRemise(devis, remisePct, acomptePct, lignesLibres);
 
   const poutres = useMemo(
     () => genererOssature3D(p, g, nom.nbPannesIntermediairesParPan),
@@ -75,6 +79,8 @@ export function Resultats({
       validiteJours,
       remisePct,
       acomptePct,
+      lignesLibres,
+      mentions,
     });
 
   // Nom de fichier lisible : n° de devis ou nom du chantier, sinon « charpente ».
@@ -87,7 +93,7 @@ export function Resultats({
   const exporterPdf = () => {
     void telechargerDevisPdf(
       etude,
-      { entreprise, client, numeroDevis, dateDevis, validiteJours, remisePct, acomptePct, referenceChantier },
+      { entreprise, client, numeroDevis, dateDevis, validiteJours, remisePct, acomptePct, referenceChantier, lignesLibres, mentions },
       `devis-${slug}.pdf`,
     ).catch((err) => console.error("Échec génération PDF", err));
   };
@@ -211,7 +217,7 @@ export function Resultats({
             </tr>
           </thead>
           <tbody>
-            {devis.lignes.map((l, i) => (
+            {df.lignes.map((l, i) => (
               <tr key={i}>
                 <td>{l.libelle}</td>
                 <td className="num">{nb(l.quantite, 3)}</td>

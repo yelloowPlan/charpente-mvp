@@ -337,12 +337,65 @@ body {
 .champ-large span {
   color: var(--gris);
 }
-.champ-large input {
+.champ-large input,
+.champ-large textarea {
   padding: 8px 10px;
   border: 1px solid var(--trait-fort);
   border-radius: var(--rayon-sm);
   font: inherit;
   transition: border-color var(--t), box-shadow var(--t);
+}
+.champ-large textarea {
+  resize: vertical;
+  min-height: 56px;
+}
+.champ-large textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.14);
+}
+
+/* ---- lignes libres ---- */
+.ligne-libre {
+  display: grid;
+  grid-template-columns: 1fr 52px 46px 66px 30px;
+  gap: 4px;
+  align-items: center;
+}
+.ligne-libre input {
+  min-width: 0;
+  padding: 6px 7px;
+  border: 1px solid var(--trait-fort);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12.5px;
+}
+.ligne-libre .suppr {
+  border: 1px solid var(--trait);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 6px 0;
+  cursor: pointer;
+  color: var(--gris);
+}
+.ligne-libre .suppr:hover {
+  color: var(--danger);
+  border-color: #fca5a5;
+}
+.ajouter-ligne {
+  align-self: flex-start;
+  background: var(--accent-doux);
+  color: var(--accent-fonce);
+  border: 1px dashed var(--accent);
+  border-radius: var(--rayon-sm);
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ajouter-ligne:hover {
+  background: #fbe6cf;
 }
 
 /* ---- résultats ---- */

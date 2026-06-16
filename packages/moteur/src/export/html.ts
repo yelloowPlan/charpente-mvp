@@ -1,6 +1,6 @@
 import type { Etude } from "../engine/etude.ts";
 import type { Entreprise, Client } from "../domain/types.ts";
-import { appliquerRemise } from "../engine/devis.ts";
+import { appliquerRemise, type LigneDevis } from "../engine/devis.ts";
 import { coupeTransversaleSvg } from "./schema-svg.ts";
 
 /**
@@ -27,6 +27,10 @@ export interface OptionsHtml {
   remisePct?: number;
   /** acompte demandé à la commande (% du TTC) */
   acomptePct?: number;
+  /** lignes libres (postes annexes : échafaudage, dépose, zinguerie…) */
+  lignesLibres?: LigneDevis[];
+  /** conditions générales / mentions à imprimer en pied de devis */
+  mentions?: string;
 }
 
 const esc = (s: string): string =>
@@ -86,7 +90,7 @@ const nb = (n: number, dec = 2): string =>
 
 export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
-  const df = appliquerRemise(devis, options.remisePct, options.acomptePct);
+  const df = appliquerRemise(devis, options.remisePct, options.acomptePct, options.lignesLibres);
 
   const svg = coupeTransversaleSvg({
     largeurM: p.batiment.largeurM,
@@ -122,7 +126,7 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
     )
     .join("");
 
-  const lignesDevis = devis.lignes
+  const lignesDevis = df.lignes
     .map(
       (l) => `<tr>
         <td>${esc(l.libelle)}</td>
@@ -141,9 +145,13 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
     })
     .join("");
 
+  const mentionsHtml =
+    options.mentions && options.mentions.trim()
+      ? `<p class="mentions">${esc(options.mentions).replace(/\n/g, "<br>")}</p>`
+      : "";
   const pied = options.dateGeneration
-    ? `<p class="pied">Généré le ${esc(options.dateGeneration)} — vérifications structurelles indicatives (flèche ELS), ne remplacent pas une note de calcul Eurocode 5.</p>`
-    : `<p class="pied">Vérifications structurelles indicatives (flèche ELS), ne remplacent pas une note de calcul Eurocode 5.</p>`;
+    ? `${mentionsHtml}<p class="pied">Généré le ${esc(options.dateGeneration)} — vérifications structurelles indicatives (flèche ELS), ne remplacent pas une note de calcul Eurocode 5.</p>`
+    : `${mentionsHtml}<p class="pied">Vérifications structurelles indicatives (flèche ELS), ne remplacent pas une note de calcul Eurocode 5.</p>`;
 
   return `<!doctype html>
 <html lang="fr">
@@ -175,7 +183,8 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
   ul.alertes li { padding: 4px 0; }
   .al-attention { color: #92400e; }
   .al-bloquant { color: #b91c1c; }
-  .pied { margin-top: 28px; color: var(--gris); font-size: 12px; border-top: 1px solid var(--trait); padding-top: 10px; }
+  .mentions { margin-top: 24px; font-size: 11px; color: var(--gris); line-height: 1.5; white-space: pre-line; }
+  .pied { margin-top: 16px; color: var(--gris); font-size: 12px; border-top: 1px solid var(--trait); padding-top: 10px; }
   .entete-entreprise { font-size: 13px; line-height: 1.4; margin: 0 0 16px; padding-bottom: 12px; border-bottom: 2px solid var(--encre); }
   .entete-entreprise strong { font-size: 16px; }
   .bloc-devis { display: flex; justify-content: space-between; gap: 24px; font-size: 13px; margin: 0 0 16px; }

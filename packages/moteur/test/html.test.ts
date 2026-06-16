@@ -109,6 +109,17 @@ describe("export HTML", () => {
     assert.ok(!html.includes("Acompte"));
   });
 
+  it("intègre les lignes libres et les mentions", () => {
+    const h = etudeVersHtml(etude, {
+      lignesLibres: [
+        { libelle: "Échafaudage périphérique", quantite: 1, unite: "forfait", prixUnitaireCents: 80000, totalHtCents: 80000 },
+      ],
+      mentions: "Devis valable sous réserve de visite technique.",
+    });
+    assert.ok(h.includes("Échafaudage périphérique"));
+    assert.ok(h.includes("Devis valable sous réserve"));
+  });
+
   it("n'affiche pas de bloc devis/client par défaut", () => {
     assert.ok(!html.includes('<div class="bloc-devis">'));
   });

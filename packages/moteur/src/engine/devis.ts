@@ -51,19 +51,26 @@ export interface DevisFinal {
 }
 
 /**
- * Applique une remise (% du HT) et calcule un acompte (% du TTC) sur un devis brut.
- * Transformation pure : le devis de base (coût réel) reste inchangé.
- * Avec remisePct = acomptePct = 0, les totaux sont identiques au devis brut.
+ * Construit le devis commercial : ajoute d'éventuelles lignes libres (postes
+ * annexes), applique une remise (% du HT) et calcule un acompte (% du TTC).
+ * Transformation pure : le devis de base (coût réel calculé) reste inchangé.
+ * Sans lignes libres ni remise/acompte, les totaux sont identiques au devis brut.
  */
-export function appliquerRemise(devis: Devis, remisePct = 0, acomptePct = 0): DevisFinal {
-  const sousTotalHtCents = devis.totalHtCents;
+export function appliquerRemise(
+  devis: Devis,
+  remisePct = 0,
+  acomptePct = 0,
+  lignesLibres: LigneDevis[] = [],
+): DevisFinal {
+  const lignes = [...devis.lignes, ...lignesLibres];
+  const sousTotalHtCents = lignes.reduce((s, l) => s + l.totalHtCents, 0);
   const remiseCents = Math.round((sousTotalHtCents * Math.max(0, remisePct)) / 100);
   const totalHtCents = sousTotalHtCents - remiseCents;
   const tvaCents = Math.round((totalHtCents * devis.tauxTvaPct) / 100);
   const totalTtcCents = totalHtCents + tvaCents;
   const acompteCents = Math.round((totalTtcCents * Math.max(0, acomptePct)) / 100);
   return {
-    lignes: devis.lignes,
+    lignes,
     sousTotalHtCents,
     remisePct,
     remiseCents,
@@ -73,6 +80,22 @@ export function appliquerRemise(devis: Devis, remisePct = 0, acomptePct = 0): De
     acomptePct,
     acompteCents,
     tauxTvaPct: devis.tauxTvaPct,
+  };
+}
+
+/** Crée une ligne de devis libre (poste annexe). */
+export function ligneLibre(
+  libelle: string,
+  quantite: number,
+  unite: string,
+  prixUnitaireCents: number,
+): LigneDevis {
+  return {
+    libelle,
+    quantite,
+    unite,
+    prixUnitaireCents,
+    totalHtCents: Math.round(quantite * prixUnitaireCents),
   };
 }
 

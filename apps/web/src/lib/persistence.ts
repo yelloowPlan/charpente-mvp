@@ -1,4 +1,4 @@
-import type { ParametresProjet, Entreprise, Client } from "@charpente/moteur";
+import type { ParametresProjet, Entreprise, Client, LigneDevis } from "@charpente/moteur";
 
 /**
  * Persistance locale des projets (localStorage).
@@ -177,6 +177,8 @@ export interface DocumentDevis {
   validiteJours: number;
   remisePct: number;
   acomptePct: number;
+  lignesLibres: LigneDevis[];
+  mentions: string;
 }
 
 export function documentVide(): DocumentDevis {
@@ -186,6 +188,8 @@ export function documentVide(): DocumentDevis {
     validiteJours: 30,
     remisePct: 0,
     acomptePct: 0,
+    lignesLibres: [],
+    mentions: "",
   };
 }
 
@@ -212,12 +216,14 @@ export function chargerDocument(store: Magasin): DocumentDevis | null {
     const d: unknown = JSON.parse(brut);
     if (!estDocument(d)) return null;
     const o = d as unknown as Record<string, unknown>;
-    // Rétro-compatibilité : les docs antérieurs n'ont pas remise/acompte.
+    // Rétro-compatibilité : les docs antérieurs n'ont pas remise/acompte/lignes/mentions.
     return {
       ...documentVide(),
       ...d,
       remisePct: typeof o.remisePct === "number" ? o.remisePct : 0,
       acomptePct: typeof o.acomptePct === "number" ? o.acomptePct : 0,
+      lignesLibres: Array.isArray(o.lignesLibres) ? (o.lignesLibres as LigneDevis[]) : [],
+      mentions: typeof o.mentions === "string" ? o.mentions : "",
     };
   } catch {
     return null;

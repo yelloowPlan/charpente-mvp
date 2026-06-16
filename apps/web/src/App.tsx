@@ -14,6 +14,7 @@ import { Presets } from "./components/Presets.tsx";
 import type { Preset } from "./lib/presets.ts";
 import { EntrepriseForm } from "./components/EntrepriseForm.tsx";
 import { ClientDevisForm } from "./components/ClientDevisForm.tsx";
+import { PostesAnnexes } from "./components/PostesAnnexes.tsx";
 import {
   magasinNavigateur,
   chargerBrouillon,
@@ -141,6 +142,7 @@ export default function App() {
           <ParamForm projet={projet} onChange={setProjet} />
           <EntrepriseForm entreprise={entreprise} onChange={setEntreprise} />
           <ClientDevisForm doc={doc} onChange={setDoc} />
+          <PostesAnnexes doc={doc} onChange={setDoc} />
         </section>
 
         <section
@@ -157,6 +159,8 @@ export default function App() {
               validiteJours={doc.validiteJours}
               remisePct={doc.remisePct}
               acomptePct={doc.acomptePct}
+              lignesLibres={doc.lignesLibres}
+              mentions={doc.mentions}
             />
           ) : (
             <div className="bloc erreurs" role="alert">
