@@ -1,9 +1,11 @@
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import {
   type Etude,
   type Entreprise,
   type Client,
   genererOssature3D,
+  genererLattage3D,
+  genererCouverture3D,
   appliquerRemise,
   etudeVersHtml,
   nomenclatureVersCsv,
@@ -17,6 +19,15 @@ import { telechargerDevisPdf } from "../lib/pdf.ts";
 
 // Chargé à la demande : la stack 3D (three.js) reste hors du bundle initial.
 const Vue3D = lazy(() => import("./Vue3D.tsx"));
+
+const COUV_COULEUR: Record<string, string> = {
+  tuile_mecanique: "#b25b3e",
+  tuile_plate: "#8a3d2a",
+  ardoise: "#3f4651",
+  bac_acier: "#9aa3ab",
+};
+
+const ETAPES = ["Ossature", "Lattage", "Couverture"];
 
 interface Props {
   etude: Etude;
@@ -46,6 +57,10 @@ export function Resultats({
     () => genererOssature3D(p, g, nom.nbPannesIntermediairesParPan),
     [p, g, nom.nbPannesIntermediairesParPan],
   );
+  const lattage = useMemo(() => genererLattage3D(p, g), [p, g]);
+  const pans = useMemo(() => genererCouverture3D(p, g), [p, g]);
+  const couvertureCouleur = COUV_COULEUR[p.toiture.couverture.type] ?? "#b25b3e";
+  const [etape, setEtape] = useState(1);
 
   const dateGeneration = new Date().toISOString().slice(0, 10);
   const dateDevis = new Date().toLocaleDateString("fr-FR");
@@ -98,10 +113,28 @@ export function Resultats({
           <Carte titre="Hauteur faîtage" valeur={`${nb(g.hauteurFaitageM, 3)} m`} />
           <Carte titre="Portée chevron adm." valeur={`${nb(nom.porteeAdmissibleChevronM, 2)} m`} />
         </div>
+        <div className="etapes" role="tablist" aria-label="Étapes de construction">
+          {ETAPES.map((label, i) => (
+            <button
+              key={label}
+              type="button"
+              role="tab"
+              aria-selected={etape === i + 1}
+              className={etape === i + 1 ? "actif" : ""}
+              onClick={() => setEtape(i + 1)}
+            >
+              <span className="etape-num">{i + 1}</span> {label}
+            </button>
+          ))}
+        </div>
         <div className="vue3d">
           <Suspense fallback={<div className="vue3d-fallback">Chargement de la vue 3D…</div>}>
             <Vue3D
               poutres={poutres}
+              lattage={lattage}
+              pans={pans}
+              couvertureCouleur={couvertureCouleur}
+              etape={etape}
               largeurM={p.batiment.largeurM}
               hauteurM={g.hauteurFaitageM}
               longueurM={p.batiment.longueurM}

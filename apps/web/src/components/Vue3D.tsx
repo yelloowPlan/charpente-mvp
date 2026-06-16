@@ -1,12 +1,12 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, ContactShadows } from "@react-three/drei";
-import { Vector3, Quaternion } from "three";
-import type { Poutre3D, RolePoutre } from "@charpente/moteur";
+import { Vector3, Quaternion, BufferGeometry, BufferAttribute, DoubleSide } from "three";
+import type { Poutre3D, Pan3D, RolePoutre } from "@charpente/moteur";
 
 const UP = new Vector3(0, 1, 0);
 
-/** Teinte bois par rôle (structure plus foncée, couverture plus claire). */
+/** Teinte bois par rôle. */
 const COULEURS: Record<RolePoutre, string> = {
   chevron: "#cda571",
   panne: "#b07c43",
@@ -16,6 +16,7 @@ const COULEURS: Record<RolePoutre, string> = {
   entrait: "#8a5a2b",
   arbaletrier: "#8a5a2b",
   poincon: "#7d4f25",
+  liteau: "#d8b98a",
 };
 
 function Poutre({ poutre }: { poutre: Poutre3D }) {
@@ -44,14 +45,44 @@ function Poutre({ poutre }: { poutre: Poutre3D }) {
   );
 }
 
+function Pan({ pan, couleur }: { pan: Pan3D; couleur: string }) {
+  const geom = useMemo(() => {
+    const g = new BufferGeometry();
+    const verts = new Float32Array(pan.points.flat());
+    g.setAttribute("position", new BufferAttribute(verts, 3));
+    g.setIndex(pan.points.length === 4 ? [0, 1, 2, 0, 2, 3] : [0, 1, 2]);
+    g.computeVertexNormals();
+    return g;
+  }, [pan]);
+  useEffect(() => () => geom.dispose(), [geom]);
+  return (
+    <mesh geometry={geom} castShadow receiveShadow>
+      <meshStandardMaterial color={couleur} side={DoubleSide} roughness={0.92} metalness={0.02} />
+    </mesh>
+  );
+}
+
 interface Props {
   poutres: Poutre3D[];
+  lattage: Poutre3D[];
+  pans: Pan3D[];
+  couvertureCouleur: string;
+  etape: number; // 1 = ossature, 2 = + lattage, 3 = + couverture
   largeurM: number;
   hauteurM: number;
   longueurM: number;
 }
 
-export default function Vue3D({ poutres, largeurM, hauteurM, longueurM }: Props) {
+export default function Vue3D({
+  poutres,
+  lattage,
+  pans,
+  couvertureCouleur,
+  etape,
+  largeurM,
+  hauteurM,
+  longueurM,
+}: Props) {
   const taille = Math.max(longueurM, largeurM, hauteurM, 1);
   return (
     <Canvas
@@ -69,8 +100,10 @@ export default function Vue3D({ poutres, largeurM, hauteurM, longueurM }: Props)
       />
       <group>
         {poutres.map((p, i) => (
-          <Poutre key={i} poutre={p} />
+          <Poutre key={`o${i}`} poutre={p} />
         ))}
+        {etape >= 2 && lattage.map((p, i) => <Poutre key={`l${i}`} poutre={p} />)}
+        {etape >= 3 && pans.map((pan, i) => <Pan key={`p${i}`} pan={pan} couleur={couvertureCouleur} />)}
       </group>
       <ContactShadows
         position={[0, -0.02, 0]}

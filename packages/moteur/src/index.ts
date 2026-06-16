@@ -20,7 +20,10 @@ export {
 export { etudier, validerProjet, ErreurValidation, type Etude } from "./engine/etude.ts";
 export {
   genererOssature3D,
+  genererLattage3D,
+  genererCouverture3D,
   type Poutre3D,
+  type Pan3D,
   type Point3,
   type RolePoutre,
 } from "./engine/ossature.ts";

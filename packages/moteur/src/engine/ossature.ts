@@ -23,7 +23,8 @@ export type RolePoutre =
   | "aretier"
   | "entrait"
   | "arbaletrier"
-  | "poincon";
+  | "poincon"
+  | "liteau";
 
 export interface Poutre3D {
   role: RolePoutre;
@@ -31,6 +32,11 @@ export interface Poutre3D {
   b: Point3;
   largeurMm: number;
   hauteurMm: number;
+}
+
+/** Pan de couverture (polygone 3D, 3 ou 4 sommets dans l'ordre). */
+export interface Pan3D {
+  points: Point3[];
 }
 
 /** Positions réparties et centrées sur une longueur totale (n points). */
@@ -152,4 +158,83 @@ export function genererOssature3D(
   }
 
   return poutres;
+}
+
+/**
+ * Lattage 3D (liteaux horizontaux), pour l'étape « lattage » de la visualisation.
+ * Liteaux espacés du pureau le long du rampant, courant sur la longueur du pan.
+ */
+export function genererLattage3D(p: ParametresProjet, geo?: GeometrieToit): Poutre3D[] {
+  const g = geo ?? calculerGeometrie(p);
+  const W = p.batiment.largeurM;
+  const Lp = g.longueurPanM;
+  const h = g.hauteurFaitageM;
+  const demiLp = Lp / 2;
+  const pureau = p.toiture.couverture.pureauM;
+  const sec = p.charpente.sections.liteau;
+  const liteaux: Poutre3D[] = [];
+  const rampant = g.rampantSansDebordM;
+  const nRangs = Math.max(1, Math.floor(rampant / pureau));
+
+  const ajouterRang = (x0: number, x1: number, zHaut: number, signe: number) => {
+    // pan d'un côté : de la sablière (t=0) au faîtage/haut (t=1)
+    for (let i = 0; i <= nRangs; i++) {
+      const t = Math.min(1, (i * pureau) / rampant);
+      const z = signe * zHaut * (1 - t);
+      const y = h * t;
+      liteaux.push({ role: "liteau", a: [x0, y, z], b: [x1, y, z], largeurMm: sec.largeurMm, hauteurMm: sec.hauteurMm });
+    }
+  };
+
+  if (g.nbPans === 2) {
+    ajouterRang(-demiLp, demiLp, W / 2, 1);
+    ajouterRang(-demiLp, demiLp, W / 2, -1);
+  } else if (p.toiture.typologie === "croupe") {
+    // longs pans, région centrale (sur le faîtage)
+    const ridgeHalf = g.longueurFaitageM / 2;
+    const a = ridgeHalf > 0 ? -ridgeHalf : -demiLp;
+    const b = ridgeHalf > 0 ? ridgeHalf : demiLp;
+    ajouterRang(a, b, W / 2, 1);
+    ajouterRang(a, b, W / 2, -1);
+  } else {
+    // appentis : pan unique de z=-W/2 (bas) à z=+W/2 (haut)
+    for (let i = 0; i <= nRangs; i++) {
+      const t = Math.min(1, (i * pureau) / rampant);
+      const z = -W / 2 + t * W;
+      const y = h * t;
+      liteaux.push({ role: "liteau", a: [-demiLp, y, z], b: [demiLp, y, z], largeurMm: sec.largeurMm, hauteurMm: sec.hauteurMm });
+    }
+  }
+  return liteaux;
+}
+
+/**
+ * Pans de couverture 3D (polygones), pour l'étape « couverture » de la visualisation.
+ */
+export function genererCouverture3D(p: ParametresProjet, geo?: GeometrieToit): Pan3D[] {
+  const g = geo ?? calculerGeometrie(p);
+  const W = p.batiment.largeurM;
+  const L = p.batiment.longueurM;
+  const h = g.hauteurFaitageM;
+  const Lp = g.longueurPanM;
+  const demiLp = Lp / 2;
+  const dz = W / 2;
+
+  if (p.toiture.typologie === "croupe") {
+    const halfL = L / 2;
+    const r = g.longueurFaitageM / 2;
+    return [
+      { points: [[-halfL, 0, dz], [halfL, 0, dz], [r, h, 0], [-r, h, 0]] },
+      { points: [[-halfL, 0, -dz], [halfL, 0, -dz], [r, h, 0], [-r, h, 0]] },
+      { points: [[halfL, 0, dz], [halfL, 0, -dz], [r, h, 0]] },
+      { points: [[-halfL, 0, dz], [-halfL, 0, -dz], [-r, h, 0]] },
+    ];
+  }
+  if (g.nbPans === 1) {
+    return [{ points: [[-demiLp, 0, -dz], [demiLp, 0, -dz], [demiLp, h, dz], [-demiLp, h, dz]] }];
+  }
+  return [
+    { points: [[-demiLp, 0, dz], [demiLp, 0, dz], [demiLp, h, 0], [-demiLp, h, 0]] },
+    { points: [[-demiLp, 0, -dz], [demiLp, 0, -dz], [demiLp, h, 0], [-demiLp, h, 0]] },
+  ];
 }

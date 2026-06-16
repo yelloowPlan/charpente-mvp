@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { projetParDefaut } from "../src/domain/defaults.ts";
 import { calculerGeometrie } from "../src/engine/geometrie.ts";
 import { genererNomenclature } from "../src/engine/nomenclature.ts";
-import { genererOssature3D } from "../src/engine/ossature.ts";
+import { genererOssature3D, genererLattage3D, genererCouverture3D } from "../src/engine/ossature.ts";
 
 function compter(role: string, projet = projetParDefaut()) {
   const g = calculerGeometrie(projet);
@@ -43,6 +43,34 @@ describe("genererOssature3D — deux pans (référence)", () => {
     const faite = poutres.find((b) => b.role === "faitiere")!;
     assert.equal(faite.a[1], g.hauteurFaitageM);
   });
+});
+
+describe("genererLattage3D & genererCouverture3D", () => {
+  const cas: Array<["deux_pans" | "appentis" | "croupe", number]> = [
+    ["deux_pans", 2],
+    ["appentis", 1],
+    ["croupe", 4],
+  ];
+  for (const [typologie, nbPans] of cas) {
+    const base = projetParDefaut();
+    const p = projetParDefaut({ ...base, toiture: { ...base.toiture, typologie } });
+    const g = calculerGeometrie(p);
+
+    it(`${typologie} : lattage présent et fini`, () => {
+      const lit = genererLattage3D(p, g);
+      assert.ok(lit.length > 0);
+      for (const b of lit) for (const v of [...b.a, ...b.b]) assert.ok(Number.isFinite(v));
+    });
+
+    it(`${typologie} : ${nbPans} pan(s) de couverture, sommets finis`, () => {
+      const pans = genererCouverture3D(p, g);
+      assert.equal(pans.length, nbPans);
+      for (const pan of pans) {
+        assert.ok(pan.points.length >= 3);
+        for (const pt of pan.points) for (const v of pt) assert.ok(Number.isFinite(v));
+      }
+    });
+  }
 });
 
 describe("genererOssature3D — appentis", () => {
