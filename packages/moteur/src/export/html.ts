@@ -3,6 +3,7 @@ import type { Entreprise, Client } from "../domain/types.ts";
 import { appliquerRemise, type LigneDevis } from "../engine/devis.ts";
 import { coupeTransversaleSvg } from "./schema-svg.ts";
 import { planMasseSvg } from "./plan-svg.ts";
+import { metreCouverture } from "../engine/couverture.ts";
 
 /**
  * Livrable HTML autonome (CSS inline, imprimable A4 → PDF via le navigateur).
@@ -216,6 +217,20 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
 
   <h2>Plan de charpente</h2>
   <div class="plan">${planMasseSvg(p)}</div>
+
+  <h2>Métré couverture</h2>
+  ${(() => {
+    const m = metreCouverture(p, g);
+    const lignes = [
+      ["Surface", `${nb(m.surfaceM2)} m²`],
+      ["Faîtage", `${nb(m.mlFaitage, 2)} ml`],
+      ...(m.mlAretiers > 0 ? [["Arêtiers", `${nb(m.mlAretiers, 2)} ml`]] : []),
+      ["Égout", `${nb(m.mlEgout, 2)} ml`],
+      ...(m.mlRives > 0 ? [["Rives", `${nb(m.mlRives, 2)} ml`]] : []),
+      ...(m.nbTuiles > 0 ? [["Tuiles (estimé)", `~ ${nb(m.nbTuiles, 0)}`]] : []),
+    ];
+    return `<ul class="geo">${lignes.map((l) => `<li><span>${l[0]}</span><b>${l[1]}</b></li>`).join("")}</ul>`;
+  })()}
 
   <h2>Nomenclature</h2>
   <table>

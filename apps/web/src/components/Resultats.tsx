@@ -7,6 +7,7 @@ import {
   genererLattage3D,
   genererCouverture3D,
   planMasseSvg,
+  metreCouverture,
   appliquerRemise,
   etudeVersHtml,
   nomenclatureVersCsv,
@@ -66,6 +67,7 @@ export function Resultats({
   const pans = useMemo(() => genererCouverture3D(p, g), [p, g]);
   const couvertureCouleur = COUV_COULEUR[p.toiture.couverture.type] ?? "#b25b3e";
   const planSvg = useMemo(() => planMasseSvg(p, g), [p, g]);
+  const couv = useMemo(() => metreCouverture(p, g), [p, g]);
   const [etape, setEtape] = useState(1);
 
   const dateGeneration = new Date().toISOString().slice(0, 10);
@@ -155,6 +157,18 @@ export function Resultats({
       <div className="bloc">
         <h2>Plan de charpente</h2>
         <div className="plan" dangerouslySetInnerHTML={{ __html: planSvg }} />
+      </div>
+
+      <div className="bloc">
+        <h2>Métré couverture</h2>
+        <div className="cartes">
+          <Carte titre="Surface" valeur={`${nb(couv.surfaceM2)} m²`} />
+          <Carte titre="Faîtage" valeur={`${nb(couv.mlFaitage, 2)} ml`} />
+          {couv.mlAretiers > 0 && <Carte titre="Arêtiers" valeur={`${nb(couv.mlAretiers, 2)} ml`} />}
+          <Carte titre="Égout" valeur={`${nb(couv.mlEgout, 2)} ml`} />
+          {couv.mlRives > 0 && <Carte titre="Rives" valeur={`${nb(couv.mlRives, 2)} ml`} />}
+          {couv.nbTuiles > 0 && <Carte titre="Tuiles (est.)" valeur={`~ ${nb(couv.nbTuiles, 0)}`} />}
+        </div>
       </div>
 
       <div className="bloc">
