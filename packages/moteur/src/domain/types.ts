@@ -161,6 +161,7 @@ export type RoleElement =
   | "panne_sabliere"
   | "panne_intermediaire"
   | "aretier"
+  | "noue"
   | "ferme_entrait"
   | "ferme_arbaletrier"
   | "ferme_poincon";

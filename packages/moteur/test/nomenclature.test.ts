@@ -1,8 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { projetParDefaut } from "../src/domain/defaults.ts";
-import { genererNomenclature } from "../src/engine/nomenclature.ts";
-import type { RoleElement } from "../src/domain/types.ts";
+import { genererNomenclature, genererNomenclatureComposee } from "../src/engine/nomenclature.ts";
+import type { ParametresProjet, RoleElement } from "../src/domain/types.ts";
 import { closeTo } from "./helpers.ts";
 
 const nom = genererNomenclature(projetParDefaut());
@@ -95,5 +95,53 @@ describe("genererNomenclature — appentis (mono-pan)", () => {
     assert.equal(q("ferme_entrait"), 0);
     assert.equal(q("ferme_arbaletrier"), 0);
     assert.equal(q("ferme_poincon"), 0);
+  });
+});
+
+describe("genererNomenclatureComposee — multi-volumes (RFC 0001, Lot A2)", () => {
+  const base = projetParDefaut();
+  const W = base.batiment.largeurM;
+
+  function composer(raccord: "L" | "T"): ParametresProjet {
+    return {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord, secondaire: { largeurM: W, longueurM: 4, positionM: 5 } },
+      },
+    };
+  }
+
+  it("sans composition : identique à la nomenclature mono-volume (rétro-compat)", () => {
+    const a = genererNomenclatureComposee(base);
+    const b = genererNomenclature(base);
+    assert.equal(a.elements.length, b.elements.length);
+    assert.equal(a.estimation, false);
+  });
+
+  it("T : 2 chevrons de noue, aile présente, marqué estimation", () => {
+    const r = genererNomenclatureComposee(composer("T"));
+    const noue = r.elements.find((e) => e.role === "noue");
+    assert.ok(noue, "chevron de noue manquant");
+    assert.equal(noue?.quantite, 2);
+    assert.ok(r.elements.some((e) => e.nom.includes("(aile)")), "éléments d'aile manquants");
+    assert.ok(r.elements.some((e) => e.nom === "Empannon de noue"), "empannons manquants");
+    assert.equal(r.estimation, true);
+  });
+
+  it("L : 1 chevron de noue", () => {
+    const r = genererNomenclatureComposee(composer("L"));
+    const noue = r.elements.find((e) => e.role === "noue");
+    assert.equal(noue?.quantite, 1);
+  });
+
+  it("conservateur : le bois composé ≥ bois principal seul (jamais de sous-métré)", () => {
+    const compo = genererNomenclatureComposee(composer("T"));
+    const principal = genererNomenclature(base);
+    const vol = (els: typeof compo.elements) =>
+      els
+        .filter((e) => e.modeDebit === "barre")
+        .reduce((s, e) => s + e.quantite * e.longueurM, 0);
+    assert.ok(vol(compo.elements) > vol(principal.elements));
   });
 });

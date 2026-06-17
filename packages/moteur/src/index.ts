@@ -17,7 +17,11 @@ export {
   contrainteFlexionMPa,
   type ZoneNeige,
 } from "./engine/structure.ts";
-export { genererNomenclature, type ResultatNomenclature } from "./engine/nomenclature.ts";
+export {
+  genererNomenclature,
+  genererNomenclatureComposee,
+  type ResultatNomenclature,
+} from "./engine/nomenclature.ts";
 export { metreCouverture, type MetreCouverture } from "./engine/couverture.ts";
 export { planifierDebit, type PlanDebit, type PlanSection, type BarreDebitee } from "./engine/debit.ts";
 export {

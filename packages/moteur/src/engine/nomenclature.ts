@@ -1,5 +1,10 @@
 import type { Element, ParametresProjet } from "../domain/types.ts";
-import { calculerGeometrie, type GeometrieToit } from "./geometrie.ts";
+import {
+  calculerGeometrie,
+  calculerGeometrieComposee,
+  type GeometrieToit,
+  type GeometrieComposee,
+} from "./geometrie.ts";
 import { chargeElsKNm2, porteeAdmissibleFlecheM } from "./structure.ts";
 
 export interface ResultatNomenclature {
@@ -237,4 +242,129 @@ function genererCroupe(
       formule: `2 longs pans × ${nbInter} (estimé)`,
     });
   }
+}
+
+/**
+ * Nomenclature d'une toiture composée multi-volumes (RFC 0001, Lot A — volumes de
+ * même largeur et même pente). Stratégie ADDITIVE et CONSERVATRICE (jamais de
+ * sous-commande) : nomenclature du volume principal **inchangée** + apport de l'aile
+ * (deux_pans de longueur = saillie) + pièces de noue (chevron de noue + empannons).
+ *
+ * Au droit du raccord, on n'effectue PAS le retrait fin des chevrons communs
+ * recoupés : ils restent comptés ET on ajoute les empannons → léger sur-métré bois
+ * dans la zone de jonction, du bon côté pour un devis. D'où `estimation: true`.
+ *
+ * Sans `composition`, renvoie exactement la nomenclature mono-volume (rétro-compat).
+ */
+export function genererNomenclatureComposee(
+  p: ParametresProjet,
+  gc?: GeometrieComposee,
+): ResultatNomenclature {
+  const g = gc ?? calculerGeometrieComposee(p);
+  const compo = p.toiture.composition;
+
+  // Principal : chemin mono-volume strict (composition retirée → aucune récursion).
+  const pPrincipal: ParametresProjet = {
+    ...p,
+    toiture: { ...p.toiture, composition: undefined },
+  };
+  const principal = genererNomenclature(pPrincipal, g.principal);
+  if (!compo) return principal;
+
+  const c = p.charpente;
+  const elements = [...principal.elements];
+  const W = p.batiment.largeurM;
+  const S = compo.secondaire.longueurM;
+  const entraxe = c.entraxeChevronM;
+  const pureau = p.toiture.couverture.pureauM;
+  const cos = Math.cos((p.toiture.penteDeg * Math.PI) / 180);
+  const R = g.principal.rampantM;
+
+  // --- Aile : deux_pans de longueur de faîtage = saillie S ---
+  const nbChevAile = 2 * (Math.floor(S / entraxe) + 1);
+  elements.push({
+    role: "chevron",
+    nom: "Chevron (aile)",
+    longueurM: R,
+    section: c.sections.chevron,
+    quantite: nbChevAile,
+    modeDebit: "barre",
+    formule: `2 pans × (⌊${S}/${entraxe}⌋ + 1) — volume secondaire (saillie ${S} m)`,
+  });
+  const nbRangsAile = 2 * (Math.floor(R / pureau) + 1);
+  elements.push({
+    role: "liteau",
+    nom: "Liteau (aile)",
+    longueurM: S,
+    section: c.sections.liteau,
+    quantite: nbRangsAile,
+    modeDebit: "lineaire",
+    formule: `2 pans × (⌊${R.toFixed(2)}/${pureau}⌋ + 1) rangs sur la saillie`,
+  });
+  if (c.ecranSousToiture) {
+    elements.push({
+      role: "contre_liteau",
+      nom: "Contre-liteau (aile)",
+      longueurM: R,
+      section: c.sections.contreLiteau,
+      quantite: nbChevAile,
+      modeDebit: "lineaire",
+      formule: `1 par chevron d'aile = ${nbChevAile}`,
+    });
+  }
+  elements.push({
+    role: "panne_faitiere",
+    nom: "Panne faîtière (aile)",
+    longueurM: S,
+    section: c.sections.panne,
+    quantite: 1,
+    modeDebit: "barre",
+    formule: `1 faîtière d'aile sur la saillie (${S} m)`,
+  });
+  elements.push({
+    role: "panne_sabliere",
+    nom: "Sablière (aile)",
+    longueurM: S,
+    section: c.sections.panne,
+    quantite: 2,
+    modeDebit: "barre",
+    formule: `2 sablières d'aile (une par mur de rive de l'aile)`,
+  });
+
+  // --- Noue(s) : chevron de noue (reprend 2 pans → section renforcée = arbalétrier) ---
+  elements.push({
+    role: "noue",
+    nom: "Chevron de noue",
+    longueurM: g.longueurNoueM,
+    section: c.sections.arbaletrier,
+    quantite: g.nbNoues,
+    modeDebit: "barre",
+    formule: `${g.nbNoues} noue(s) de ${g.longueurNoueM.toFixed(2)} m ((W/2)·√(2+tan²α)) — section renforcée`,
+  });
+
+  // --- Empannons de noue (jacks) : 2 versants par noue, longueurs (W/2 − j·entraxe)/cos ---
+  const demi = W / 2;
+  const m = Math.max(0, Math.floor((demi - 1e-9) / entraxe));
+  let mlParVersant = 0;
+  for (let j = 1; j <= m; j++) mlParVersant += (demi - j * entraxe) / cos;
+  const totalJacks = g.nbNoues * 2 * m;
+  if (totalJacks > 0) {
+    const totalMl = g.nbNoues * 2 * mlParVersant;
+    elements.push({
+      role: "chevron",
+      nom: "Empannon de noue",
+      longueurM: totalMl / totalJacks,
+      section: c.sections.chevron,
+      quantite: totalJacks,
+      modeDebit: "barre",
+      formule: `${g.nbNoues} noue(s) × 2 versants × ${m} empannons croissants (estimé)`,
+    });
+  }
+
+  return {
+    elements,
+    porteeAdmissibleChevronM: principal.porteeAdmissibleChevronM,
+    nbPannesIntermediairesParPan: principal.nbPannesIntermediairesParPan,
+    estimation: true,
+  };
 }
