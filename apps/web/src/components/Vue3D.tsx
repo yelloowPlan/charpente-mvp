@@ -67,7 +67,7 @@ interface Props {
   lattage: Poutre3D[];
   pans: Pan3D[];
   couvertureCouleur: string;
-  etape: number; // 1 = ossature, 2 = + lattage, 3 = + couverture
+  etape: number; // 1 = ossature, 2 = ossature + lattage, 3 = ossature + couverture (lattage masqué)
   largeurM: number;
   hauteurM: number;
   longueurM: number;
@@ -102,7 +102,7 @@ export default function Vue3D({
         {poutres.map((p, i) => (
           <Poutre key={`o${i}`} poutre={p} />
         ))}
-        {etape >= 2 && lattage.map((p, i) => <Poutre key={`l${i}`} poutre={p} />)}
+        {etape === 2 && lattage.map((p, i) => <Poutre key={`l${i}`} poutre={p} />)}
         {etape >= 3 && pans.map((pan, i) => <Pan key={`p${i}`} pan={pan} couleur={couvertureCouleur} />)}
       </group>
       <ContactShadows
