@@ -34,7 +34,15 @@ export function ParamForm({ projet, onChange }: Props) {
     onChange({ ...projet, toiture: { ...projet.toiture, penteDeg: v } });
 
   const setTypologie = (t: string) =>
-    onChange({ ...projet, toiture: { ...projet.toiture, typologie: t as TypeToiture } });
+    onChange({
+      ...projet,
+      toiture: {
+        ...projet.toiture,
+        typologie: t as TypeToiture,
+        // la composition (aile) n'est supportée que sur un principal deux pans (Lot A)
+        composition: t === "deux_pans" ? projet.toiture.composition : undefined,
+      },
+    });
 
   const setNeige = (zone: string, altitude: number) =>
     onChange({

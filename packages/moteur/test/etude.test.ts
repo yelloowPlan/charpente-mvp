@@ -93,6 +93,53 @@ describe("etudier — pipeline complet", () => {
     assert.ok(e.alertes.some((a) => a.message.includes("Toiture composée")));
   });
 
+  it("composition deux_pans : saillie ≤ 0 est bloquante", () => {
+    const base = projetParDefaut();
+    const W = base.batiment.largeurM;
+    const saillieNulle = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T" as const, secondaire: { largeurM: W, longueurM: 0, positionM: 5 } },
+      },
+    };
+    assert.throws(() => etudier(saillieNulle), ErreurValidation);
+  });
+
+  it("composition sur croupe : aile ignorée gracieusement (attention, pas de crash)", () => {
+    const base = projetParDefaut();
+    const W = base.batiment.largeurM;
+    const surCroupe = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        typologie: "croupe" as const,
+        composition: { raccord: "T" as const, secondaire: { largeurM: W, longueurM: 4, positionM: 5 } },
+      },
+    };
+    const e = etudier(surCroupe); // ne doit pas lever
+    const croupeSeule = etudier({ ...base, toiture: { ...base.toiture, typologie: "croupe" as const } });
+    assert.equal(e.geometrie.surfaceToitureM2, croupeSeule.geometrie.surfaceToitureM2); // aile ignorée
+    assert.ok(e.alertes.some((x) => x.message.includes("aile ignorée")));
+  });
+
+  it("composition : largeur d'aile ≠ portée → attention non bloquante", () => {
+    const base = projetParDefaut();
+    const p = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: {
+          raccord: "T" as const,
+          secondaire: { largeurM: base.batiment.largeurM + 2, longueurM: 4, positionM: 5 },
+        },
+      },
+    };
+    const alertes = validerProjet(p);
+    assert.equal(alertes.filter((x) => x.niveau === "bloquant").length, 0);
+    assert.ok(alertes.some((x) => x.niveau === "attention" && x.message.includes("largeur d'aile")));
+  });
+
   it("lève ErreurValidation si un paramètre est bloquant", () => {
     const base = projetParDefaut();
     const p = projetParDefaut({ ...base, toiture: { ...base.toiture, penteDeg: -3 } });

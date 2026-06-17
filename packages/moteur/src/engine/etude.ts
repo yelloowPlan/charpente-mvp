@@ -96,6 +96,37 @@ export function validerProjet(p: ParametresProjet): Alerte[] {
     p.prix.tauxTvaPct < 0;
   if (prixNegatif) bloquant("Les prix et taux ne peuvent pas être négatifs.");
 
+  // Composition multi-volumes (RFC 0001) — garde-fous d'entrée
+  const compo = p.toiture.composition;
+  if (compo) {
+    const sec = compo.secondaire;
+    const Lp = p.batiment.longueurM + 2 * p.batiment.debordPignonM;
+    if (p.toiture.typologie !== "deux_pans") {
+      a.push({
+        niveau: "attention",
+        message:
+          "Toiture composée : aile ignorée — seul un volume principal « deux pans » est supporté " +
+          "(Lot A). Repasser en deux pans pour l'activer.",
+      });
+    } else if (!(sec.longueurM > 0)) {
+      bloquant("Toiture composée : la saillie de l'aile doit être > 0.");
+    }
+    if (Math.abs(sec.largeurM - p.batiment.largeurM) > 1e-6) {
+      a.push({
+        niveau: "attention",
+        message:
+          `Toiture composée : largeur d'aile (${sec.largeurM} m) ≠ portée principale ` +
+          `(${p.batiment.largeurM} m). Lot A suppose des largeurs égales — résultat dégradé.`,
+      });
+    }
+    if (sec.positionM < 0 || sec.positionM > Lp) {
+      a.push({
+        niveau: "attention",
+        message: `Toiture composée : position de l'aile (${sec.positionM} m) hors du bâtiment [0 ; ${Lp.toFixed(2)} m].`,
+      });
+    }
+  }
+
   // Avertissements non bloquants
   if (p.charpente.entraxeFermeM > p.batiment.longueurM) {
     a.push({
@@ -120,7 +151,10 @@ export function etudier(p: ParametresProjet): Etude {
   // Composition multi-volumes (RFC 0001) : géométrie/nomenclature composées et
   // surface développée totale dans le devis. Sans composition : chemin mono-volume
   // strictement inchangé (golden préservé).
-  const gc = p.toiture.composition ? calculerGeometrieComposee(p) : undefined;
+  const gc =
+    p.toiture.composition && p.toiture.typologie === "deux_pans"
+      ? calculerGeometrieComposee(p)
+      : undefined;
   const geometrie = gc
     ? { ...gc.principal, surfaceToitureM2: gc.surfaceComposeeM2 }
     : calculerGeometrie(p);
@@ -181,8 +215,8 @@ export function etudier(p: ParametresProjet): Etude {
       "assemblages, combinaisons) — faire valider par un bureau d'études.",
   });
 
-  if (p.toiture.composition) {
-    const r = p.toiture.composition.raccord;
+  if (gc) {
+    const r = p.toiture.composition!.raccord;
     alertes.push({
       niveau: "attention",
       message:

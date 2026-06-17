@@ -67,7 +67,7 @@ export function Resultats({
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
   const df = appliquerRemise(devis, remisePct, acomptePct, lignesLibres, coeffVente);
 
-  const compose = !!p.toiture.composition;
+  const compose = !!p.toiture.composition && p.toiture.typologie === "deux_pans";
   const poutres = useMemo(
     () =>
       compose
