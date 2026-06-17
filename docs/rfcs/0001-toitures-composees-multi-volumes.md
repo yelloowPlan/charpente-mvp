@@ -1,6 +1,6 @@
 # RFC 0001 — Toitures composées multi-volumes (noues)
 
-- **Statut** : cadrage (proposé) — non implémenté
+- **Statut** : **Lot A implémenté** (L + T réguliers, bout en bout) — Lots B/C à venir
 - **Date** : 2026-06-17
 - **Périmètre** : moteur (`packages/moteur`) + app (`apps/web`)
 - **Pré-requis lus** : `geometrie.ts`, `nomenclature.ts` (`genererCroupe`), `ossature.ts`, `plan-geometry.ts`, `domain/types.ts`
@@ -143,6 +143,18 @@ A1 types + `calculerGeometrieComposee` (+ tests noue/surface) · A2 nomenclature
 - `pnpm --filter @charpente/moteur test` + `@charpente/web` verts ; les deux builds OK.
 
 ---
+
+## 8 bis. État de réalisation (Lot A)
+
+| Incrément | Livré | Notes |
+|---|---|---|
+| A1 géométrie | ✅ | `calculerGeometrieComposee` : noue exacte `(W/2)·√(2+tan²α)`, surface T en forme close ; L marqué `surfaceExacte:false` |
+| A2 nomenclature | ✅ | `genererNomenclatureComposee` : aile + chevron(s) de noue + empannons ; additif/conservateur, `estimation:true` |
+| A3 plan 2D/DXF | ✅ | segments aile + noues, repères N1.., calque DXF `NOUE`, bbox auto |
+| A4 3D | ✅ | `genererOssature/Lattage/CouvertureComposee3D`, rôle `noue` |
+| A5 UI + câblage | ✅ | `etudier` branché (surface composée au devis), éditeur « Volume secondaire », preset « Maison en T », sous-titre dynamique |
+
+Reste Lot A possible (non bloquant) : retrait fin des chevrons recoupés (passer d'estimé à exact), `mlNoues` dans le métré couverture, dérivation propre de la surface **L**.
 
 ## 9. Hors périmètre (explicite)
 
