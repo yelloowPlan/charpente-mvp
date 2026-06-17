@@ -49,6 +49,27 @@ export interface Composition {
   secondaire: VolumeSecondaire;
 }
 
+/** Type de lucarne (RFC 0002). deux_pans = à fronton (2 noues) ; chien_assis = 1 pan. */
+export type TypeLucarne = "deux_pans" | "chien_assis";
+
+/**
+ * Lucarne (petit ouvrage posé sur un pan de toiture — RFC 0002).
+ * Géométrie ESTIMATIVE : surface, noues et ossature approchées, pour le métré/devis.
+ */
+export interface Lucarne {
+  type: TypeLucarne;
+  /** largeur de la lucarne, le long de l'égout (m) */
+  largeurM: number;
+  /** hauteur de la face avant (tableau/fronton) au-dessus du pan (m) */
+  hauteurFaceM: number;
+  /** profondeur de la lucarne sur le rampant (m) */
+  avanceeM: number;
+  /** position le long du bâtiment (m depuis le pignon gauche) */
+  positionXM: number;
+  /** pan principal porteur */
+  cote: "avant" | "arriere";
+}
+
 /** Types de charpente. MVP : `trad_pannes` uniquement. */
 export type TypeCharpente = "trad_pannes" | "fermette";
 
@@ -147,6 +168,8 @@ export interface ParametresProjet {
     couverture: Couverture;
     /** composition multi-volumes (RFC 0001) — absent ⇒ toiture mono-volume */
     composition?: Composition;
+    /** lucarnes posées sur les pans (RFC 0002) — absent/vide ⇒ aucune */
+    lucarnes?: Lucarne[];
   };
   charpente: ParametresCharpente;
   charges: Charges;

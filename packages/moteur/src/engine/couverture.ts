@@ -1,5 +1,6 @@
 import type { ParametresProjet } from "../domain/types.ts";
 import { calculerGeometrie, calculerGeometrieComposee, type GeometrieToit } from "./geometrie.ts";
+import { metreLucarnes } from "./lucarnes.ts";
 
 /**
  * Métré de couverture : surfaces et linéaires (faîtage, arêtiers, égout, rives)
@@ -65,6 +66,10 @@ export function metreCouverture(p: ParametresProjet, geo?: GeometrieToit): Metre
     mlEgout += nbAiles * 2 * S; // 2 égouts par aile (saillie)
     mlRives += nbAiles * 2 * rampantAile; // pignon libre de l'aile (2 rampants)
   }
+
+  // Lucarnes : ajoute leurs noues au métré.
+  const luc = metreLucarnes(p);
+  mlNoues += luc.mlNoues;
 
   const densite = DENSITE[p.toiture.couverture.type] ?? 0;
   const nbTuiles = Math.round(g.surfaceToitureM2 * densite);

@@ -23,6 +23,7 @@ export {
   type ResultatNomenclature,
 } from "./engine/nomenclature.ts";
 export { metreCouverture, type MetreCouverture } from "./engine/couverture.ts";
+export { metreLucarnes, type MetreLucarnes } from "./engine/lucarnes.ts";
 export { planifierDebit, type PlanDebit, type PlanSection, type BarreDebitee } from "./engine/debit.ts";
 export {
   chiffrerDevis,

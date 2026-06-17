@@ -8,6 +8,7 @@ import {
 import { planifierDebit, type PlanDebit } from "./debit.ts";
 import { chiffrerDevis, type Devis } from "./devis.ts";
 import { contrainteFlexionMPa, fmdMPa } from "./structure.ts";
+import { metreLucarnes } from "./lucarnes.ts";
 
 /** Erreur levée lorsqu'au moins une règle de validation bloquante échoue. */
 export class ErreurValidation extends Error {
@@ -147,6 +148,21 @@ export function validerProjet(p: ParametresProjet): Alerte[] {
     }
   }
 
+  // Lucarnes (RFC 0002) — garde-fous d'entrée
+  const Lbat = p.batiment.longueurM + 2 * p.batiment.debordPignonM;
+  for (const [i, luc] of (p.toiture.lucarnes ?? []).entries()) {
+    const n = i + 1;
+    if (!(luc.largeurM > 0)) bloquant(`Lucarne ${n} : largeur doit être > 0.`);
+    if (!(luc.hauteurFaceM > 0)) bloquant(`Lucarne ${n} : hauteur de face doit être > 0.`);
+    if (!(luc.avanceeM > 0)) bloquant(`Lucarne ${n} : avancée doit être > 0.`);
+    if (luc.positionXM < 0 || luc.positionXM > Lbat) {
+      a.push({
+        niveau: "attention",
+        message: `Lucarne ${n} : position (${luc.positionXM} m) hors du bâtiment [0 ; ${Lbat.toFixed(2)} m].`,
+      });
+    }
+  }
+
   // Avertissements non bloquants
   if (p.charpente.entraxeFermeM > p.batiment.longueurM) {
     a.push({
@@ -175,12 +191,28 @@ export function etudier(p: ParametresProjet): Etude {
     p.toiture.composition && p.toiture.typologie === "deux_pans"
       ? calculerGeometrieComposee(p)
       : undefined;
-  const geometrie = gc
+  const geometrieBase = gc
     ? { ...gc.principal, surfaceToitureM2: gc.surfaceComposeeM2 }
     : calculerGeometrie(p);
-  const nomenclature = gc
+  const nomenclatureBase = gc
     ? genererNomenclatureComposee(p, gc)
-    : genererNomenclature(p, geometrie);
+    : genererNomenclature(p, geometrieBase);
+
+  // Lucarnes (RFC 0002) : ossature + surface ajoutées (estimatif). Absent ⇒ inchangé.
+  const lucarnes = metreLucarnes(p);
+  const geometrie =
+    lucarnes.surfaceM2 > 0
+      ? { ...geometrieBase, surfaceToitureM2: geometrieBase.surfaceToitureM2 + lucarnes.surfaceM2 }
+      : geometrieBase;
+  const nomenclature =
+    lucarnes.elements.length > 0
+      ? {
+          ...nomenclatureBase,
+          elements: [...nomenclatureBase.elements, ...lucarnes.elements],
+          estimation: true,
+        }
+      : nomenclatureBase;
+
   const debit = planifierDebit(
     nomenclature.elements,
     p.debit.barresCommercialesM,
@@ -245,6 +277,15 @@ export function etudier(p: ParametresProjet): Etude {
         "aile et noue(s) calculées (volumes de même largeur et même pente). Métré de la " +
         "zone de raccord ESTIMÉ et conservateur (léger sur-métré bois, jamais de sous-commande). " +
         "Le chevron de noue reprend 2 pans — section à valider par un bureau d'études.",
+    });
+  }
+
+  if (lucarnes.nb > 0) {
+    alertes.push({
+      niveau: "attention",
+      message:
+        `${lucarnes.nb} lucarne(s) : surface, noues et ossature ESTIMÉES (le pan n'est pas percé). ` +
+        "Les coupes de noue et l'habillage (joues, fronton, menuiserie) restent à détailler.",
     });
   }
 
