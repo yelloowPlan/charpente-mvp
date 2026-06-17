@@ -135,6 +135,22 @@ describe("genererNomenclatureComposee — multi-volumes (RFC 0001, Lot A2)", () 
     assert.equal(noue?.quantite, 1);
   });
 
+  it("Lot B : aile plus étroite → chevron d'aile et noue plus courts", () => {
+    const etroite: ParametresProjet = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W - 3, longueurM: 4, positionM: 5 } },
+      },
+    };
+    const chevAile = (r: ReturnType<typeof genererNomenclatureComposee>) =>
+      r.elements.find((e) => e.nom === "Chevron (aile)")?.longueurM ?? 0;
+    const noue = (r: ReturnType<typeof genererNomenclatureComposee>) =>
+      r.elements.find((e) => e.role === "noue")?.longueurM ?? 0;
+    assert.ok(chevAile(genererNomenclatureComposee(etroite)) < chevAile(genererNomenclatureComposee(composer("T"))));
+    assert.ok(noue(genererNomenclatureComposee(etroite)) < noue(genererNomenclatureComposee(composer("T"))));
+  });
+
   it("retrait : chevrons communs recoupés retirés (< principal), bois total ≥ principal", () => {
     const compo = genererNomenclatureComposee(composer("T"));
     const principal = genererNomenclature(base);

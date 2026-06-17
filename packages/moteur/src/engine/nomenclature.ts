@@ -273,20 +273,21 @@ export function genererNomenclatureComposee(
   if (!compo) return principal;
 
   const c = p.charpente;
-  const W = p.batiment.largeurM;
+  const W2 = compo.secondaire.largeurM; // largeur de l'aile (Lot B : ≤ portée principale)
+  const d = p.batiment.debordRampantM;
   const S = compo.secondaire.longueurM;
   const entraxe = c.entraxeChevronM;
   const pureau = p.toiture.couverture.pureauM;
   const cos = Math.cos((p.toiture.penteDeg * Math.PI) / 180);
-  const R = g.principal.rampantM;
+  const R = (W2 / 2 + d) / cos; // rampant de l'aile (en W2)
 
   // Retrait des chevrons communs du pan principal recoupés par la/les noue(s) :
-  // dans l'emprise de l'aile (largeur W), les chevrons du pan de jonction
-  // deviennent des empannons. On en retire un nombre PRUDENT (⌊W/entraxe⌋−1, et
+  // dans l'emprise de l'aile (largeur W2), les chevrons du pan de jonction
+  // deviennent des empannons. On en retire un nombre PRUDENT (⌊W2/entraxe⌋−1, et
   // moitié pour un L à une seule noue), clampé ≥ 0. Les empannons (ajoutés plus
   // bas) les remplacent ⇒ le métré reste ≥ principal (garde anti-sous-métré
   // vérifiée par test), juste moins sur-évalué qu'avant.
-  const colsEmprise = Math.max(0, Math.floor(W / entraxe) - 1);
+  const colsEmprise = Math.max(0, Math.floor(W2 / entraxe) - 1);
   const retraitCommuns = compo.raccord === "T" ? colsEmprise : Math.floor(colsEmprise / 2);
   const elements = principal.elements.map((el) =>
     el.role === "chevron" && el.nom === "Chevron" && retraitCommuns > 0
@@ -360,8 +361,8 @@ export function genererNomenclatureComposee(
     formule: `${g.nbNoues} noue(s) de ${g.longueurNoueM.toFixed(2)} m ((W/2)·√(2+tan²α)) — section renforcée`,
   });
 
-  // --- Empannons de noue (jacks) : 2 versants par noue, longueurs (W/2 − j·entraxe)/cos ---
-  const demi = W / 2;
+  // --- Empannons de noue (jacks) : 2 versants par noue, longueurs (W2/2 − j·entraxe)/cos ---
+  const demi = W2 / 2;
   const m = Math.max(0, Math.floor((demi - 1e-9) / entraxe));
   let mlParVersant = 0;
   for (let j = 1; j <= m; j++) mlParVersant += (demi - j * entraxe) / cos;
