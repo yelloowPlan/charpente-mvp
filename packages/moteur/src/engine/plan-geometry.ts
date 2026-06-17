@@ -86,6 +86,14 @@ export function segmentsPlan(p: ParametresProjet, geo?: GeometrieToit): SegmentP
     // Faîtage de l'aile (du croisement au pignon)
     s.push({ x1: xc, y1: yCross, x2: xc, y2: yEnd, type: "faitage" });
 
+    // Chevrons de l'aile (sur la saillie franche, au-delà de la jonction)
+    const S = compo.secondaire.longueurM;
+    const nb = Math.floor(S / entraxe) + 1;
+    for (let i = 0; i < nb; i++) {
+      const yk = yJ + (nb > 1 ? (i * S) / (nb - 1) : S / 2);
+      s.push({ x1: xc - half, y1: yk, x2: xc + half, y2: yk, type: "chevron" });
+    }
+
     // Noue(s) : T → 2 (un coin rentrant de chaque côté), L → 1 (côté gauche)
     s.push({ x1: xc - half, y1: yJ, x2: xc, y2: yCross, type: "noue" });
     if (compo.raccord === "T") {

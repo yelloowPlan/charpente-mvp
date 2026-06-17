@@ -47,6 +47,9 @@ describe("planMasseSvg", () => {
     assert.ok(svg.startsWith("<svg"));
     assert.ok(svg.includes(">N1<") && svg.includes(">N2<"));
     assert.ok(!svg.includes("NaN") && !svg.includes("Infinity"));
+    // plus de lignes que le mono-volume (aile : contour + faîtage + chevrons + noues)
+    const nbLignes = (s: string) => (s.match(/<line /g) ?? []).length;
+    assert.ok(nbLignes(svg) > nbLignes(planMasseSvg(base)));
   });
 
   it("composé L : une seule noue (N1, pas de N2)", () => {
