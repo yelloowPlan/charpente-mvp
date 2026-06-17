@@ -72,19 +72,22 @@ export function segmentsPlan(p: ParametresProjet, geo?: GeometrieToit): SegmentP
   // faîtage principal (y = W/2) au croisement ; noue(s) du coin rentrant au croisement.
   const compo = p.toiture.composition;
   if (compo) {
+    // Lot B : largeur d'aile W2 ≤ W1. Le faîtage d'aile pénètre le pan principal à
+    // la profondeur W2/2 (y = W1 − W2/2) au lieu d'atteindre le faîtage (y = W1/2).
+    const W2 = compo.secondaire.largeurM;
     const xc = compo.secondaire.positionM; // x du faîtage de l'aile
-    const half = W / 2;
-    const yJ = W; // arête de jonction (long pan)
+    const half = W2 / 2;
+    const yJ = W; // arête de jonction (long pan principal = W1)
     const yEnd = W + compo.secondaire.longueurM; // pignon de l'aile
-    const yCross = W / 2; // croisement des faîtages
+    const yPen = W - W2 / 2; // point de pénétration sur le pan principal
 
     // Contour de l'aile (3 côtés ; le côté de jonction reste ouvert)
     s.push({ x1: xc - half, y1: yJ, x2: xc - half, y2: yEnd, type: "contour" });
     s.push({ x1: xc - half, y1: yEnd, x2: xc + half, y2: yEnd, type: "contour" });
     s.push({ x1: xc + half, y1: yEnd, x2: xc + half, y2: yJ, type: "contour" });
 
-    // Faîtage de l'aile (du croisement au pignon)
-    s.push({ x1: xc, y1: yCross, x2: xc, y2: yEnd, type: "faitage" });
+    // Faîtage de l'aile (du point de pénétration au pignon)
+    s.push({ x1: xc, y1: yPen, x2: xc, y2: yEnd, type: "faitage" });
 
     // Chevrons de l'aile (sur la saillie franche, au-delà de la jonction)
     const S = compo.secondaire.longueurM;
@@ -94,10 +97,10 @@ export function segmentsPlan(p: ParametresProjet, geo?: GeometrieToit): SegmentP
       s.push({ x1: xc - half, y1: yk, x2: xc + half, y2: yk, type: "chevron" });
     }
 
-    // Noue(s) : T → 2 (un coin rentrant de chaque côté), L → 1 (côté gauche)
-    s.push({ x1: xc - half, y1: yJ, x2: xc, y2: yCross, type: "noue" });
+    // Noue(s) : du coin rentrant au point de pénétration. T → 2, L → 1.
+    s.push({ x1: xc - half, y1: yJ, x2: xc, y2: yPen, type: "noue" });
     if (compo.raccord === "T") {
-      s.push({ x1: xc + half, y1: yJ, x2: xc, y2: yCross, type: "noue" });
+      s.push({ x1: xc + half, y1: yJ, x2: xc, y2: yPen, type: "noue" });
     }
   }
 
