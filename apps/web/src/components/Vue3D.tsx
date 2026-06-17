@@ -13,6 +13,7 @@ const COULEURS: Record<RolePoutre, string> = {
   sabliere: "#b07c43",
   faitiere: "#9a6533",
   aretier: "#8a5a2b",
+  noue: "#2f6f8f",
   entrait: "#8a5a2b",
   arbaletrier: "#8a5a2b",
   poincon: "#7d4f25",

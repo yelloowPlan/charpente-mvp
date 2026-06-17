@@ -3,7 +3,15 @@ import assert from "node:assert/strict";
 import { projetParDefaut } from "../src/domain/defaults.ts";
 import { calculerGeometrie } from "../src/engine/geometrie.ts";
 import { genererNomenclature } from "../src/engine/nomenclature.ts";
-import { genererOssature3D, genererLattage3D, genererCouverture3D } from "../src/engine/ossature.ts";
+import {
+  genererOssature3D,
+  genererLattage3D,
+  genererCouverture3D,
+  genererOssatureComposee3D,
+  genererLattageComposee3D,
+  genererCouvertureComposee3D,
+} from "../src/engine/ossature.ts";
+import type { ParametresProjet } from "../src/domain/types.ts";
 
 function compter(role: string, projet = projetParDefaut()) {
   const g = calculerGeometrie(projet);
@@ -87,5 +95,45 @@ describe("genererOssature3D — appentis", () => {
     assert.equal(compter("sabliere", p), 1);
     assert.equal(compter("faitiere", p), 1);
     assert.ok(compter("chevron", p) > 0);
+  });
+});
+
+describe("ossature 3D composée — multi-volumes (RFC 0001, Lot A4)", () => {
+  const base = projetParDefaut();
+  const W = base.batiment.largeurM;
+  const composer = (raccord: "L" | "T"): ParametresProjet => ({
+    ...base,
+    toiture: {
+      ...base.toiture,
+      composition: { raccord, secondaire: { largeurM: W, longueurM: 4, positionM: 5 } },
+    },
+  });
+
+  it("sans composition : identique à l'ossature mono-volume (rétro-compat)", () => {
+    assert.equal(genererOssatureComposee3D(base).length, genererOssature3D(base).length);
+    assert.equal(genererLattageComposee3D(base).length, genererLattage3D(base).length);
+    assert.equal(genererCouvertureComposee3D(base).length, genererCouverture3D(base).length);
+  });
+
+  it("T : 2 noues, plus de poutres et 2 pans de couverture en plus", () => {
+    const o = genererOssatureComposee3D(composer("T"));
+    assert.equal(o.filter((x) => x.role === "noue").length, 2);
+    assert.ok(o.length > genererOssature3D(base).length);
+    assert.equal(
+      genererCouvertureComposee3D(composer("T")).length,
+      genererCouverture3D(base).length + 2,
+    );
+  });
+
+  it("L : 1 noue", () => {
+    const o = genererOssatureComposee3D(composer("L"));
+    assert.equal(o.filter((x) => x.role === "noue").length, 1);
+  });
+
+  it("aucune coordonnée NaN dans l'ossature composée", () => {
+    const o = genererOssatureComposee3D(composer("T"));
+    for (const x of o) {
+      for (const v of [...x.a, ...x.b]) assert.ok(Number.isFinite(v));
+    }
   });
 });

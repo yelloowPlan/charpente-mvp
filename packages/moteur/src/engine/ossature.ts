@@ -1,5 +1,10 @@
 import type { ParametresProjet } from "../domain/types.ts";
-import { calculerGeometrie, type GeometrieToit } from "./geometrie.ts";
+import {
+  calculerGeometrie,
+  calculerGeometrieComposee,
+  type GeometrieToit,
+  type GeometrieComposee,
+} from "./geometrie.ts";
 import { genererNomenclature } from "./nomenclature.ts";
 
 /**
@@ -21,6 +26,7 @@ export type RolePoutre =
   | "faitiere"
   | "panne"
   | "aretier"
+  | "noue"
   | "entrait"
   | "arbaletrier"
   | "poincon"
@@ -237,4 +243,106 @@ export function genererCouverture3D(p: ParametresProjet, geo?: GeometrieToit): P
     { points: [[-demiLp, 0, dz], [demiLp, 0, dz], [demiLp, h, 0], [-demiLp, h, 0]] },
     { points: [[-demiLp, 0, -dz], [demiLp, 0, -dz], [demiLp, h, 0], [-demiLp, h, 0]] },
   ];
+}
+
+// ─── Composition multi-volumes (RFC 0001, Lot A4) ────────────────────────────
+// Repère 3D : X = longueur, Y = vertical, Z = portée. L'aile perpendiculaire sort
+// du long pan Z = −W/2 vers Z = −(W/2 + saillie) ; son faîtage court le long de Z
+// à X = Xc, hauteur h. Les noues relient les coins rentrants au croisement des
+// faîtages [Xc, h, 0]. Chaque générateur = principal inchangé + apports d'aile.
+
+/** Projet réduit au volume principal (composition retirée) — évite toute récursion. */
+function projetPrincipal(p: ParametresProjet): ParametresProjet {
+  return { ...p, toiture: { ...p.toiture, composition: undefined } };
+}
+
+export function genererOssatureComposee3D(
+  p: ParametresProjet,
+  gc?: GeometrieComposee,
+  nbPannesIntermParPan?: number,
+): Poutre3D[] {
+  const g = gc ?? calculerGeometrieComposee(p);
+  const poutres = genererOssature3D(projetPrincipal(p), g.principal, nbPannesIntermParPan);
+  const compo = p.toiture.composition;
+  if (!compo) return poutres;
+
+  const s = p.charpente.sections;
+  const W = p.batiment.largeurM;
+  const Lp = g.principal.longueurPanM;
+  const h = g.principal.hauteurFaitageM;
+  const S = compo.secondaire.longueurM;
+  const Xc = compo.secondaire.positionM - Lp / 2;
+  const half = W / 2;
+  const zJ = -W / 2; // ligne de jonction (coins rentrants)
+  const zEnd = -(W / 2 + S); // pignon de l'aile
+  const secChev = { largeurMm: s.chevron.largeurMm, hauteurMm: s.chevron.hauteurMm };
+  const secPanne = { largeurMm: s.panne.largeurMm, hauteurMm: s.panne.hauteurMm };
+  const secAret = { largeurMm: s.arbaletrier.largeurMm, hauteurMm: s.arbaletrier.hauteurMm };
+
+  poutres.push({ role: "faitiere", a: [Xc, h, 0], b: [Xc, h, zEnd], ...secPanne });
+  poutres.push({ role: "sabliere", a: [Xc - half, 0, zJ], b: [Xc - half, 0, zEnd], ...secPanne });
+  poutres.push({ role: "sabliere", a: [Xc + half, 0, zJ], b: [Xc + half, 0, zEnd], ...secPanne });
+
+  const nb = Math.floor(S / p.charpente.entraxeChevronM) + 1;
+  for (let i = 0; i < nb; i++) {
+    const z = zJ - (nb > 1 ? (i * S) / (nb - 1) : S / 2);
+    poutres.push({ role: "chevron", a: [Xc - half, 0, z], b: [Xc, h, z], ...secChev });
+    poutres.push({ role: "chevron", a: [Xc + half, 0, z], b: [Xc, h, z], ...secChev });
+  }
+
+  poutres.push({ role: "noue", a: [Xc - half, 0, zJ], b: [Xc, h, 0], ...secAret });
+  if (compo.raccord === "T") {
+    poutres.push({ role: "noue", a: [Xc + half, 0, zJ], b: [Xc, h, 0], ...secAret });
+  }
+  return poutres;
+}
+
+export function genererLattageComposee3D(p: ParametresProjet, gc?: GeometrieComposee): Poutre3D[] {
+  const g = gc ?? calculerGeometrieComposee(p);
+  const liteaux = genererLattage3D(projetPrincipal(p), g.principal);
+  const compo = p.toiture.composition;
+  if (!compo) return liteaux;
+
+  const sec = p.charpente.sections.liteau;
+  const W = p.batiment.largeurM;
+  const Lp = g.principal.longueurPanM;
+  const h = g.principal.hauteurFaitageM;
+  const S = compo.secondaire.longueurM;
+  const Xc = compo.secondaire.positionM - Lp / 2;
+  const half = W / 2;
+  const zEnd = -(W / 2 + S);
+  const pureau = p.toiture.couverture.pureauM;
+  const rampant = g.principal.rampantSansDebordM;
+  const nRangs = Math.max(1, Math.floor(rampant / pureau));
+
+  for (let i = 0; i <= nRangs; i++) {
+    const t = Math.min(1, (i * pureau) / rampant);
+    const y = h * t;
+    const xG = Xc - half * (1 - t); // versant gauche (vers le faîtage)
+    const xD = Xc + half * (1 - t); // versant droit
+    liteaux.push({ role: "liteau", a: [xG, y, 0], b: [xG, y, zEnd], largeurMm: sec.largeurMm, hauteurMm: sec.hauteurMm });
+    liteaux.push({ role: "liteau", a: [xD, y, 0], b: [xD, y, zEnd], largeurMm: sec.largeurMm, hauteurMm: sec.hauteurMm });
+  }
+  return liteaux;
+}
+
+export function genererCouvertureComposee3D(p: ParametresProjet, gc?: GeometrieComposee): Pan3D[] {
+  const g = gc ?? calculerGeometrieComposee(p);
+  const pans = genererCouverture3D(projetPrincipal(p), g.principal);
+  const compo = p.toiture.composition;
+  if (!compo) return pans;
+
+  const W = p.batiment.largeurM;
+  const Lp = g.principal.longueurPanM;
+  const h = g.principal.hauteurFaitageM;
+  const S = compo.secondaire.longueurM;
+  const Xc = compo.secondaire.positionM - Lp / 2;
+  const half = W / 2;
+  const zJ = -W / 2;
+  const zEnd = -(W / 2 + S);
+
+  // Deux versants de l'aile (quadrilatères, arête haute = noue jusqu'au croisement).
+  pans.push({ points: [[Xc - half, 0, zJ], [Xc - half, 0, zEnd], [Xc, h, zEnd], [Xc, h, 0]] });
+  pans.push({ points: [[Xc + half, 0, zJ], [Xc + half, 0, zEnd], [Xc, h, zEnd], [Xc, h, 0]] });
+  return pans;
 }
