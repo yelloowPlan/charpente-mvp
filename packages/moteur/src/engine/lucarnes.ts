@@ -1,4 +1,4 @@
-import type { Element, Lucarne, ParametresProjet, Section } from "../domain/types.ts";
+import type { Element, ParametresProjet, Section } from "../domain/types.ts";
 
 /**
  * Lucarnes (RFC 0002) — petits ouvrages posés sur un pan.
@@ -23,8 +23,6 @@ export interface MetreLucarnes {
   /** ossature estimative (chevrons, faîtières, noues, linteaux) */
   elements: Element[];
 }
-
-const hypot3 = (a: number, b: number, c: number): number => Math.sqrt(a * a + b * b + c * c);
 
 export function metreLucarnes(p: ParametresProjet): MetreLucarnes {
   const lucarnes = p.toiture.lucarnes ?? [];
