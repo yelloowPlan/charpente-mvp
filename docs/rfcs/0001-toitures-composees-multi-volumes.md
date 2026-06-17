@@ -1,6 +1,6 @@
 # RFC 0001 — Toitures composées multi-volumes (noues)
 
-- **Statut** : **Lot A terminé** · **Lot B (largeurs différentes) terminé** · reste B (croix, W2>W1) + Lot C
+- **Statut** : **Lot A terminé** · **Lot B terminé** (largeurs différentes + croix + W2>W1 plafonné) · **Lot C non démarré** (pentes différentes, lucarnes)
 - **Date** : 2026-06-17
 - **Périmètre** : moteur (`packages/moteur`) + app (`apps/web`)
 - **Pré-requis lus** : `geometrie.ts`, `nomenclature.ts` (`genererCroupe`), `ossature.ts`, `plan-geometry.ts`, `domain/types.ts`
@@ -171,7 +171,9 @@ Cas réel le plus fréquent : **extension plus étroite** que le corps principal
 
 **Réduction au Lot A** : à `W2 = W1`, `h2 = h1`, la pénétration `y = W1/2` redevient le **croisement des faîtages**, et toutes les formules retombent exactement sur le Lot A. ⇒ généralisation unifiée (remplacer `W → W2`, hauteur `h → h2`, jonction `croisement → pénétration`), Lot A = cas particulier, tests Lot A inchangés.
 
-**Périmètre Lot B (cet incrément)** : `W2 ≤ W1` uniquement (aile même largeur ou plus étroite). `W2 > W1` (aile plus large → c'est le principal qui pénètre) et la **croix (+, 4 noues)** restent pour plus tard. Pentes différentes / lucarnes = Lot C.
+**Périmètre Lot B (livré)** : `W2 ≤ W1` (aile même largeur ou plus étroite) ✅ · **croix** (aile traversante symétrique, 4 noues) ✅ · `W2 > W1` **plafonné** à W1 avec guidage (cas évitable en désignant le plus grand volume comme principal) ✅. Pentes différentes / lucarnes = Lot C.
+
+> **Note Lot C (pentes différentes)** : dérivation faite — la noue reste **droite** (intersection de deux plans), mais sa projection plan n'est plus à 45° (pente `−tanα2/tanα1`) et sa longueur devient `(W2/2)·√(1 + (tanα2/tanα1)² + tan²α2)`. La surface n'est plus globalement emprise/cos α (chaque volume a son propre cos). Tractable mais c'est un vrai lot (champ `penteAile`, surface par volume, dévers d'arêtier variable) **dont le rendu 3D/plan ne peut pas être validé par les tests seuls** → validation visuelle requise avant de le bâtir.
 
 Incréments **tous livrés** : **B1** géométrie (W2, h2, pénétration `(W1−W2)/2`) ✅ · **B2** nomenclature (dimensions d'aile en W2) ✅ · **B3** plan 2D/DXF (faîtage pénétrant) ✅ · **B4** 3D (pénétration, apex d'aile abaissé) ✅ · **B5** UI (largeur d'aile éditable + validation `W2 ≤ W1` + preset « Maison + extension étroite ») ✅. Tout réduit exactement au Lot A si `W2 = W1` (tests Lot A inchangés, golden verrouillé). **258 tests moteur + 25 web.**
 
