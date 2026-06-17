@@ -8,6 +8,9 @@ import {
   genererOssature3D,
   genererLattage3D,
   genererCouverture3D,
+  genererOssatureComposee3D,
+  genererLattageComposee3D,
+  genererCouvertureComposee3D,
   planMasseSvg,
   planDxf,
   metreCouverture,
@@ -64,12 +67,22 @@ export function Resultats({
   const { projet: p, geometrie: g, nomenclature: nom, debit, devis } = etude;
   const df = appliquerRemise(devis, remisePct, acomptePct, lignesLibres, coeffVente);
 
+  const compose = !!p.toiture.composition;
   const poutres = useMemo(
-    () => genererOssature3D(p, g, nom.nbPannesIntermediairesParPan),
-    [p, g, nom.nbPannesIntermediairesParPan],
+    () =>
+      compose
+        ? genererOssatureComposee3D(p, undefined, nom.nbPannesIntermediairesParPan)
+        : genererOssature3D(p, g, nom.nbPannesIntermediairesParPan),
+    [p, g, compose, nom.nbPannesIntermediairesParPan],
   );
-  const lattage = useMemo(() => genererLattage3D(p, g), [p, g]);
-  const pans = useMemo(() => genererCouverture3D(p, g), [p, g]);
+  const lattage = useMemo(
+    () => (compose ? genererLattageComposee3D(p) : genererLattage3D(p, g)),
+    [p, g, compose],
+  );
+  const pans = useMemo(
+    () => (compose ? genererCouvertureComposee3D(p) : genererCouverture3D(p, g)),
+    [p, g, compose],
+  );
   const couvertureCouleur = COUV_COULEUR[p.toiture.couverture.type] ?? "#b25b3e";
   const planSvg = useMemo(() => planMasseSvg(p, g), [p, g]);
   const couv = useMemo(() => metreCouverture(p, g), [p, g]);

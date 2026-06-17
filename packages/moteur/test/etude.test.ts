@@ -76,6 +76,23 @@ describe("etudier — pipeline complet", () => {
     assert.ok(vs.tauxFlexionPct > 0 && vs.tauxFlexionPct < 100); // dimensionnement sain
   });
 
+  it("composition multi-volumes : surface et devis augmentés + alerte raccord", () => {
+    const base = projetParDefaut();
+    const W = base.batiment.largeurM;
+    const compose = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T" as const, secondaire: { largeurM: W, longueurM: 4, positionM: 5 } },
+      },
+    };
+    const ref = etudier(base);
+    const e = etudier(compose);
+    assert.ok(e.geometrie.surfaceToitureM2 > ref.geometrie.surfaceToitureM2);
+    assert.ok(e.devis.totalTtcCents > ref.devis.totalTtcCents);
+    assert.ok(e.alertes.some((a) => a.message.includes("Toiture composée")));
+  });
+
   it("lève ErreurValidation si un paramètre est bloquant", () => {
     const base = projetParDefaut();
     const p = projetParDefaut({ ...base, toiture: { ...base.toiture, penteDeg: -3 } });

@@ -38,9 +38,19 @@ function pavillonCroupe(): ParametresProjet {
   return p;
 }
 
+function maisonEnT(): ParametresProjet {
+  const p = projetParDefaut();
+  p.batiment = { longueurM: 10, largeurM: 6, debordRampantM: 0.4, debordPignonM: 0.3 };
+  p.toiture.penteDeg = 40;
+  // Aile perpendiculaire centrale (même largeur, même pente) → 2 noues.
+  p.toiture.composition = { raccord: "T", secondaire: { largeurM: 6, longueurM: 5, positionM: 5 } };
+  return p;
+}
+
 export const PRESETS: Preset[] = [
   { id: "maison", nom: "Maison 2 pans", projet: maison2Pans() },
   { id: "abri", nom: "Abri / carport", projet: abriCarport() },
   { id: "extension", nom: "Extension", projet: extension() },
   { id: "croupe", nom: "Pavillon croupe", projet: pavillonCroupe() },
+  { id: "maison_t", nom: "Maison en T (noues)", projet: maisonEnT() },
 ];

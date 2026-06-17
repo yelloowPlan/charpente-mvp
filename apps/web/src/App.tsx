@@ -109,12 +109,21 @@ export default function App() {
     setOnglet("resultats");
   };
 
+  const TYPO_LABEL: Record<string, string> = {
+    deux_pans: "Toiture 2 pans",
+    appentis: "Appentis (1 pan)",
+    croupe: "Croupe (4 pans)",
+  };
+  const labelToiture =
+    (TYPO_LABEL[projet.toiture.typologie] ?? "Toiture") +
+    (projet.toiture.composition ? ` composée (raccord ${projet.toiture.composition.raccord})` : "");
+
   return (
     <div className="app">
       <header className="entete">
         <h1>Configurateur de charpente</h1>
         <p className="sous-titre">
-          Toiture 2 pans · charpente traditionnelle à pannes — géométrie, nomenclature,
+          {labelToiture} · charpente traditionnelle à pannes — géométrie, nomenclature,
           débit et devis en direct.
         </p>
       </header>

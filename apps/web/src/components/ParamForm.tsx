@@ -3,6 +3,8 @@ import type {
   ParametresBatiment,
   Couverture,
   ParametresCharpente,
+  Composition,
+  TypeRaccord,
   TypeToiture,
   ZoneNeige,
 } from "@charpente/moteur";
@@ -68,6 +70,26 @@ export function ParamForm({ projet, onChange }: Props) {
 
   const setCharp = <K extends keyof ParametresCharpente>(k: K, v: ParametresCharpente[K]) =>
     onChange({ ...projet, charpente: { ...projet.charpente, [k]: v } });
+
+  // Composition multi-volumes (RFC 0001). La largeur de l'aile est synchronisée
+  // sur la portée principale (Lot A = volumes de même largeur).
+  const compo = projet.toiture.composition;
+  const setComposition = (c: Composition | undefined) =>
+    onChange({ ...projet, toiture: { ...projet.toiture, composition: c } });
+  const majAile = (patch: Partial<Composition["secondaire"]>, raccord?: TypeRaccord) =>
+    setComposition({
+      raccord: raccord ?? compo?.raccord ?? "T",
+      secondaire: {
+        largeurM: projet.batiment.largeurM,
+        longueurM: compo?.secondaire.longueurM ?? 4,
+        positionM: compo?.secondaire.positionM ?? projet.batiment.longueurM / 2,
+        ...patch,
+      },
+    });
+  const toggleComposition = (on: boolean) =>
+    on
+      ? majAile({})
+      : setComposition(undefined);
 
   const setClasse = (classe: string) =>
     onChange({
@@ -145,6 +167,46 @@ export function ParamForm({ projet, onChange }: Props) {
           <strong>{projet.charges.neigeKNm2.toLocaleString("fr-FR")} kN/m²</strong>
         </div>
       </fieldset>
+
+      {projet.toiture.typologie === "deux_pans" && (
+        <fieldset>
+          <legend>Volume secondaire (extension)</legend>
+          <Case
+            label="Aile perpendiculaire (toiture composée)"
+            checked={!!compo}
+            onChange={toggleComposition}
+          />
+          {compo && (
+            <>
+              <Select
+                label="Raccord"
+                value={compo.raccord}
+                options={[
+                  ["T", "T — aile centrale (2 noues)"],
+                  ["L", "L — angle (1 noue)"],
+                ]}
+                onChange={(v) => majAile({}, v as TypeRaccord)}
+              />
+              <Nombre
+                label="Saillie de l'aile (m)"
+                value={compo.secondaire.longueurM}
+                step={0.5}
+                onChange={(v) => majAile({ longueurM: v })}
+              />
+              <Nombre
+                label="Position sur le faîtage (m)"
+                value={compo.secondaire.positionM}
+                step={0.5}
+                onChange={(v) => majAile({ positionM: v })}
+              />
+              <p className="aide">
+                Aile de même largeur ({projet.batiment.largeurM.toLocaleString("fr-FR")} m) et même pente que le
+                volume principal. Métré du raccord estimé (conservateur).
+              </p>
+            </>
+          )}
+        </fieldset>
+      )}
 
       <fieldset>
         <legend>Charpente</legend>

@@ -166,6 +166,12 @@ body {
 .champ > span {
   color: var(--encre-doux);
 }
+.form .aide {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--encre-doux);
+}
 .champ input[type="number"],
 .champ select {
   width: 124px;

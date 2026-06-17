@@ -1,6 +1,10 @@
 import type { Alerte, ParametresProjet } from "../domain/types.ts";
-import { calculerGeometrie, type GeometrieToit } from "./geometrie.ts";
-import { genererNomenclature, type ResultatNomenclature } from "./nomenclature.ts";
+import { calculerGeometrie, calculerGeometrieComposee, type GeometrieToit } from "./geometrie.ts";
+import {
+  genererNomenclature,
+  genererNomenclatureComposee,
+  type ResultatNomenclature,
+} from "./nomenclature.ts";
 import { planifierDebit, type PlanDebit } from "./debit.ts";
 import { chiffrerDevis, type Devis } from "./devis.ts";
 import { contrainteFlexionMPa, fmdMPa } from "./structure.ts";
@@ -113,8 +117,16 @@ export function etudier(p: ParametresProjet): Etude {
   const bloquants = alertesValidation.filter((x) => x.niveau === "bloquant");
   if (bloquants.length > 0) throw new ErreurValidation(bloquants);
 
-  const geometrie = calculerGeometrie(p);
-  const nomenclature = genererNomenclature(p, geometrie);
+  // Composition multi-volumes (RFC 0001) : géométrie/nomenclature composées et
+  // surface développée totale dans le devis. Sans composition : chemin mono-volume
+  // strictement inchangé (golden préservé).
+  const gc = p.toiture.composition ? calculerGeometrieComposee(p) : undefined;
+  const geometrie = gc
+    ? { ...gc.principal, surfaceToitureM2: gc.surfaceComposeeM2 }
+    : calculerGeometrie(p);
+  const nomenclature = gc
+    ? genererNomenclatureComposee(p, gc)
+    : genererNomenclature(p, geometrie);
   const debit = planifierDebit(
     nomenclature.elements,
     p.debit.barresCommercialesM,
@@ -168,6 +180,18 @@ export function etudier(p: ParametresProjet): Etude {
       "Ne remplacent pas une note de calcul Eurocode 5 (cisaillement, déversement, " +
       "assemblages, combinaisons) — faire valider par un bureau d'études.",
   });
+
+  if (p.toiture.composition) {
+    const r = p.toiture.composition.raccord;
+    alertes.push({
+      niveau: "attention",
+      message:
+        `Toiture composée (raccord ${r}, ${r === "T" ? "2 noues" : "1 noue"}) : ` +
+        "aile et noue(s) calculées (volumes de même largeur et même pente). Métré de la " +
+        "zone de raccord ESTIMÉ et conservateur (léger sur-métré bois, jamais de sous-commande). " +
+        "Le chevron de noue reprend 2 pans — section à valider par un bureau d'études.",
+    });
+  }
 
   if (geometrie.nbPans === 1) {
     alertes.push({
