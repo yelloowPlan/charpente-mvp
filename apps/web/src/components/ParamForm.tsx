@@ -4,7 +4,9 @@ import type {
   Couverture,
   ParametresCharpente,
   Composition,
+  Lucarne,
   TypeRaccord,
+  TypeLucarne,
   TypeToiture,
   ZoneNeige,
 } from "@charpente/moteur";
@@ -98,6 +100,26 @@ export function ParamForm({ projet, onChange }: Props) {
     on
       ? majAile({})
       : setComposition(undefined);
+
+  // Lucarnes (RFC 0002)
+  const lucarnes = projet.toiture.lucarnes ?? [];
+  const setLucarnes = (l: Lucarne[]) =>
+    onChange({ ...projet, toiture: { ...projet.toiture, lucarnes: l.length ? l : undefined } });
+  const ajouterLucarne = () =>
+    setLucarnes([
+      ...lucarnes,
+      {
+        type: "deux_pans",
+        largeurM: 1.2,
+        hauteurFaceM: 1,
+        avanceeM: 1.5,
+        positionXM: Math.round((projet.batiment.longueurM / 2) * 10) / 10,
+        cote: "avant",
+      },
+    ]);
+  const majLucarne = (i: number, patch: Partial<Lucarne>) =>
+    setLucarnes(lucarnes.map((l, j) => (j === i ? { ...l, ...patch } : l)));
+  const retirerLucarne = (i: number) => setLucarnes(lucarnes.filter((_, j) => j !== i));
 
   const setClasse = (classe: string) =>
     onChange({
@@ -229,6 +251,45 @@ export function ParamForm({ projet, onChange }: Props) {
           )}
         </fieldset>
       )}
+
+      <fieldset>
+        <legend>Lucarnes</legend>
+        {lucarnes.map((luc, i) => (
+          <div key={i} className="lucarne-edit">
+            <div className="lucarne-tete">
+              <strong>Lucarne {i + 1}</strong>
+              <button type="button" className="lien-suppr" onClick={() => retirerLucarne(i)}>
+                Supprimer
+              </button>
+            </div>
+            <Select
+              label="Type"
+              value={luc.type}
+              options={[
+                ["deux_pans", "À fronton (2 pans)"],
+                ["chien_assis", "Chien-assis (1 pan)"],
+              ]}
+              onChange={(v) => majLucarne(i, { type: v as TypeLucarne })}
+            />
+            <Select
+              label="Pan"
+              value={luc.cote}
+              options={[
+                ["avant", "Avant"],
+                ["arriere", "Arrière"],
+              ]}
+              onChange={(v) => majLucarne(i, { cote: v as Lucarne["cote"] })}
+            />
+            <Nombre label="Largeur (m)" value={luc.largeurM} step={0.1} onChange={(v) => majLucarne(i, { largeurM: v })} />
+            <Nombre label="Hauteur de face (m)" value={luc.hauteurFaceM} step={0.1} onChange={(v) => majLucarne(i, { hauteurFaceM: v })} />
+            <Nombre label="Avancée (m)" value={luc.avanceeM} step={0.1} onChange={(v) => majLucarne(i, { avanceeM: v })} />
+            <Nombre label="Position X (m)" value={luc.positionXM} step={0.5} onChange={(v) => majLucarne(i, { positionXM: v })} />
+          </div>
+        ))}
+        <button type="button" className="btn-ajout" onClick={ajouterLucarne}>
+          + Ajouter une lucarne
+        </button>
+      </fieldset>
 
       <fieldset>
         <legend>Charpente</legend>

@@ -172,6 +172,44 @@ body {
   line-height: 1.45;
   color: var(--encre-doux);
 }
+.lucarne-edit {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  padding: 4px 12px 10px;
+  margin: 8px 0;
+  background: var(--fond, #fff);
+}
+.lucarne-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.lien-suppr {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+}
+.btn-ajout {
+  margin-top: 8px;
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed var(--trait);
+  border-radius: var(--rayon);
+  background: none;
+  color: var(--accent-fonce);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.btn-ajout:hover,
+.lien-suppr:hover {
+  filter: brightness(0.92);
+}
 .champ input[type="number"],
 .champ select {
   width: 124px;

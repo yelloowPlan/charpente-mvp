@@ -103,5 +103,28 @@ export function segmentsPlan(p: ParametresProjet, geo?: GeometrieToit): SegmentP
     if (compo.raccord === "croix") ajouterAile(-1);
   }
 
+  // Lucarnes (RFC 0002) — glyphe sur le pan : face d'égout, faîtage et noues.
+  for (const luc of p.toiture.lucarnes ?? []) {
+    const xc = luc.positionXM;
+    const demi = luc.largeurM / 2;
+    const avant = luc.cote === "avant";
+    const yEave = avant ? 0 : W;
+    const yEnd = avant
+      ? Math.min(luc.avanceeM, W / 2)
+      : Math.max(W - luc.avanceeM, W / 2);
+
+    s.push({ x1: xc - demi, y1: yEave, x2: xc + demi, y2: yEave, type: "contour" }); // face
+    if (luc.type === "deux_pans") {
+      s.push({ x1: xc, y1: yEave, x2: xc, y2: yEnd, type: "faitage" }); // faîtage
+      s.push({ x1: xc - demi, y1: yEave, x2: xc, y2: yEnd, type: "noue" });
+      s.push({ x1: xc + demi, y1: yEave, x2: xc, y2: yEnd, type: "noue" });
+    } else {
+      // chien-assis : rectangle, côtés = noues
+      s.push({ x1: xc - demi, y1: yEnd, x2: xc + demi, y2: yEnd, type: "contour" });
+      s.push({ x1: xc - demi, y1: yEave, x2: xc - demi, y2: yEnd, type: "noue" });
+      s.push({ x1: xc + demi, y1: yEave, x2: xc + demi, y2: yEnd, type: "noue" });
+    }
+  }
+
   return s;
 }

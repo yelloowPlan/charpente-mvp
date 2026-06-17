@@ -47,6 +47,7 @@ export {
   genererOssatureComposee3D,
   genererLattageComposee3D,
   genererCouvertureComposee3D,
+  genererLucarnes3D,
   type Poutre3D,
   type Pan3D,
   type Point3,

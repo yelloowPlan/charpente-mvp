@@ -65,6 +65,17 @@ function maisonExtensionBasse(): ParametresProjet {
   return p;
 }
 
+function maisonAvecLucarnes(): ParametresProjet {
+  const p = projetParDefaut();
+  p.batiment = { longueurM: 12, largeurM: 8, debordRampantM: 0.4, debordPignonM: 0.3 };
+  p.toiture.penteDeg = 45;
+  p.toiture.lucarnes = [
+    { type: "deux_pans", largeurM: 1.4, hauteurFaceM: 1.1, avanceeM: 1.6, positionXM: 4, cote: "avant" },
+    { type: "deux_pans", largeurM: 1.4, hauteurFaceM: 1.1, avanceeM: 1.6, positionXM: 8, cote: "avant" },
+  ];
+  return p;
+}
+
 export const PRESETS: Preset[] = [
   { id: "maison", nom: "Maison 2 pans", projet: maison2Pans() },
   { id: "abri", nom: "Abri / carport", projet: abriCarport() },
@@ -73,4 +84,5 @@ export const PRESETS: Preset[] = [
   { id: "maison_t", nom: "Maison en T (noues)", projet: maisonEnT() },
   { id: "maison_ext", nom: "Maison + extension étroite", projet: maisonAvecExtension() },
   { id: "maison_ext_basse", nom: "Extension à pente douce", projet: maisonExtensionBasse() },
+  { id: "maison_lucarnes", nom: "Maison + lucarnes", projet: maisonAvecLucarnes() },
 ];

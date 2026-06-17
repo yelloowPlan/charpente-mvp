@@ -367,3 +367,50 @@ export function genererCouvertureComposee3D(p: ParametresProjet, gc?: GeometrieC
   if (compo.raccord === "croix") ajouterAile(-1);
   return pans;
 }
+
+/**
+ * Lucarnes 3D (RFC 0002) — représentation indicative (faîtière + pans + face).
+ * À superposer à l'ossature/couverture quel que soit le type de toiture.
+ */
+export function genererLucarnes3D(p: ParametresProjet): { poutres: Poutre3D[]; pans: Pan3D[] } {
+  const poutres: Poutre3D[] = [];
+  const pans: Pan3D[] = [];
+  const lucarnes = p.toiture.lucarnes ?? [];
+  if (lucarnes.length === 0) return { poutres, pans };
+
+  const g = calculerGeometrie(projetPrincipal(p));
+  const Lp = g.longueurPanM;
+  const W = p.batiment.largeurM;
+  const s = p.charpente.sections;
+  const secPanne = { largeurMm: s.panne.largeurMm, hauteurMm: s.panne.hauteurMm };
+  const secChev = { largeurMm: s.chevron.largeurMm, hauteurMm: s.chevron.hauteurMm };
+
+  for (const luc of lucarnes) {
+    const Xc = luc.positionXM - Lp / 2;
+    const demi = luc.largeurM / 2;
+    const hF = luc.hauteurFaceM;
+    const avant = luc.cote === "avant";
+    const zEave = avant ? W / 2 : -W / 2;
+    const dir = avant ? -1 : 1; // vers le faîtage (|z| décroît)
+    const zBack = zEave + dir * luc.avanceeM;
+
+    // Faîtière (deux_pans) ou linteau haut (chien-assis), à hauteur hF.
+    poutres.push({ role: "faitiere", a: [Xc, hF, zEave], b: [Xc, hF, zBack], ...secPanne });
+
+    if (luc.type === "deux_pans") {
+      // Fronton (face triangulaire) + 2 versants.
+      pans.push({ points: [[Xc - demi, 0, zEave], [Xc + demi, 0, zEave], [Xc, hF, zEave]] });
+      pans.push({ points: [[Xc - demi, 0, zEave], [Xc, hF, zEave], [Xc, hF, zBack], [Xc - demi, 0, zBack]] });
+      pans.push({ points: [[Xc + demi, 0, zEave], [Xc, hF, zEave], [Xc, hF, zBack], [Xc + demi, 0, zBack]] });
+      poutres.push({ role: "noue", a: [Xc - demi, 0, zEave], b: [Xc, hF, zBack], ...secChev });
+      poutres.push({ role: "noue", a: [Xc + demi, 0, zEave], b: [Xc, hF, zBack], ...secChev });
+    } else {
+      // Chien-assis : face verticale (rectangle) + 1 versant.
+      pans.push({ points: [[Xc - demi, 0, zEave], [Xc + demi, 0, zEave], [Xc + demi, hF, zEave], [Xc - demi, hF, zEave]] });
+      pans.push({ points: [[Xc - demi, hF, zEave], [Xc + demi, hF, zEave], [Xc + demi, 0, zBack], [Xc - demi, 0, zBack]] });
+      poutres.push({ role: "noue", a: [Xc - demi, hF, zEave], b: [Xc - demi, 0, zBack], ...secChev });
+      poutres.push({ role: "noue", a: [Xc + demi, hF, zEave], b: [Xc + demi, 0, zBack], ...secChev });
+    }
+  }
+  return { poutres, pans };
+}

@@ -33,6 +33,25 @@ describe("planMasseSvg", () => {
     assert.ok(svg.includes(">F1<"));
   });
 
+  it("lucarnes : ajoutent des segments (noues), sans NaN", () => {
+    const base = projetParDefaut();
+    const sans = planMasseSvg(base);
+    const avec = planMasseSvg(
+      projetParDefaut({
+        ...base,
+        toiture: {
+          ...base.toiture,
+          lucarnes: [
+            { type: "deux_pans", largeurM: 1.2, hauteurFaceM: 1, avanceeM: 1.5, positionXM: 5, cote: "avant" },
+          ],
+        },
+      }),
+    );
+    const n = (s: string) => (s.match(/<line /g) ?? []).length;
+    assert.ok(n(avec) > n(sans));
+    assert.ok(!avec.includes("NaN"));
+  });
+
   it("composé T : trace 2 noues + repères N1/N2, sans NaN", () => {
     const base = projetParDefaut();
     const W = base.batiment.largeurM;

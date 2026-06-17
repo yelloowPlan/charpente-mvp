@@ -11,6 +11,7 @@ import {
   genererOssatureComposee3D,
   genererLattageComposee3D,
   genererCouvertureComposee3D,
+  genererLucarnes3D,
   planMasseSvg,
   planDxf,
   metreCouverture,
@@ -79,10 +80,14 @@ export function Resultats({
     () => (compose ? genererLattageComposee3D(p) : genererLattage3D(p, g)),
     [p, g, compose],
   );
-  const pans = useMemo(
+  const pansBase = useMemo(
     () => (compose ? genererCouvertureComposee3D(p) : genererCouverture3D(p, g)),
     [p, g, compose],
   );
+  // Lucarnes (RFC 0002) : superposées à l'ossature et à la couverture.
+  const lucarnes3D = useMemo(() => genererLucarnes3D(p), [p]);
+  const poutresTotal = useMemo(() => [...poutres, ...lucarnes3D.poutres], [poutres, lucarnes3D]);
+  const pans = useMemo(() => [...pansBase, ...lucarnes3D.pans], [pansBase, lucarnes3D]);
   const couvertureCouleur = COUV_COULEUR[p.toiture.couverture.type] ?? "#b25b3e";
   const planSvg = useMemo(() => planMasseSvg(p, g), [p, g]);
   const couv = useMemo(() => metreCouverture(p, g), [p, g]);
@@ -216,7 +221,7 @@ export function Resultats({
         <div className="vue3d">
           <Suspense fallback={<div className="vue3d-fallback">Chargement de la vue 3D…</div>}>
             <Vue3D
-              poutres={poutres}
+              poutres={poutresTotal}
               lattage={lattage}
               pans={pans}
               couvertureCouleur={couvertureCouleur}
