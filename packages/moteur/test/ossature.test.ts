@@ -136,4 +136,24 @@ describe("ossature 3D composée — multi-volumes (RFC 0001, Lot A4)", () => {
       for (const v of [...x.a, ...x.b]) assert.ok(Number.isFinite(v));
     }
   });
+
+  it("Lot B : aile plus étroite → faîtière d'aile plus basse + pénétration (pas au faîtage)", () => {
+    const etroit: ParametresProjet = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W - 3, longueurM: 4, positionM: 5 } },
+      },
+    };
+    const faitiereAileY = (p: ParametresProjet) => {
+      const o = genererOssatureComposee3D(p);
+      // dernière faîtière ajoutée = celle de l'aile (apex Y)
+      const f = o.filter((x) => x.role === "faitiere");
+      return f[f.length - 1].a[1];
+    };
+    assert.ok(faitiereAileY(etroit) < faitiereAileY(composer("T"))); // h2 < h1
+    for (const x of genererOssatureComposee3D(etroit)) {
+      for (const v of [...x.a, ...x.b]) assert.ok(Number.isFinite(v));
+    }
+  });
 });
