@@ -1,6 +1,6 @@
 # RFC 0001 — Toitures composées multi-volumes (noues)
 
-- **Statut** : **Lot A terminé** · **Lot B terminé** (largeurs différentes + croix + W2>W1 plafonné) · **Lot C non démarré** (pentes différentes, lucarnes)
+- **Statut** : **Lot A terminé** · **Lot B terminé** · **Lot C : pentes différentes terminé** ; reste les **lucarnes** (feature distincte)
 - **Date** : 2026-06-17
 - **Périmètre** : moteur (`packages/moteur`) + app (`apps/web`)
 - **Pré-requis lus** : `geometrie.ts`, `nomenclature.ts` (`genererCroupe`), `ossature.ts`, `plan-geometry.ts`, `domain/types.ts`
@@ -173,7 +173,18 @@ Cas réel le plus fréquent : **extension plus étroite** que le corps principal
 
 **Périmètre Lot B (livré)** : `W2 ≤ W1` (aile même largeur ou plus étroite) ✅ · **croix** (aile traversante symétrique, 4 noues) ✅ · `W2 > W1` **plafonné** à W1 avec guidage (cas évitable en désignant le plus grand volume comme principal) ✅. Pentes différentes / lucarnes = Lot C.
 
-> **Note Lot C (pentes différentes)** : dérivation faite — la noue reste **droite** (intersection de deux plans), mais sa projection plan n'est plus à 45° (pente `−tanα2/tanα1`) et sa longueur devient `(W2/2)·√(1 + (tanα2/tanα1)² + tan²α2)`. La surface n'est plus globalement emprise/cos α (chaque volume a son propre cos). Tractable mais c'est un vrai lot (champ `penteAile`, surface par volume, dévers d'arêtier variable) **dont le rendu 3D/plan ne peut pas être validé par les tests seuls** → validation visuelle requise avant de le bâtir.
+### Lot C — pentes différentes (LIVRÉ)
+
+Champ optionnel `secondaire.penteDeg` (absent ⇒ pente principale). Avec α2 ≠ α1 :
+- **Hauteur d'aile** `h2 = (W2/2)·tanα2`.
+- **Pénétration** (profondeur plan dans le pan principal) `dPen = (W2/2)·(tanα2/tanα1)`, **plafonnée à W1/2** si l'aile dépasse le faîtage (validation guide). Exposée par `GeometrieComposee.penetrationM`.
+- **Noue droite**, longueur `√((W2/2)² + dPen² + h2²)` (réduit à `(W2/2)√(2+tan²α)` si α2=α1).
+- **Surface par pente** : l'aile en `2·((W2/2+d)/cosα2)·saillie` ; métré couverture (faîtage = saillie + dPen, rives au rampant d'aile) idem.
+- Réduit **exactement** au Lot B si α2 = α1 (tests inchangés, golden verrouillé). UI : champ « Pente de l'aile », preset « Extension à pente douce ».
+
+### Lucarnes — NON démarré (feature distincte)
+
+Une lucarne (chien-assis, capucine, à fronton) est un **petit volume posé SUR un pan**, pas un volume raccordé à l'égout : modèle de données, géométrie (2 noues locales + joues/croupe de lucarne) et UI **différents** du raccord d'aile. À cadrer séparément (probable RFC 0002). Rendu 3D non validable par les tests seuls → nécessite une boucle de validation visuelle.
 
 Incréments **tous livrés** : **B1** géométrie (W2, h2, pénétration `(W1−W2)/2`) ✅ · **B2** nomenclature (dimensions d'aile en W2) ✅ · **B3** plan 2D/DXF (faîtage pénétrant) ✅ · **B4** 3D (pénétration, apex d'aile abaissé) ✅ · **B5** UI (largeur d'aile éditable + validation `W2 ≤ W1` + preset « Maison + extension étroite ») ✅. Tout réduit exactement au Lot A si `W2 = W1` (tests Lot A inchangés, golden verrouillé). **258 tests moteur + 25 web.**
 
