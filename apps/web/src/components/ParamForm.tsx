@@ -192,6 +192,7 @@ export function ParamForm({ projet, onChange }: Props) {
                 options={[
                   ["T", "T — aile centrale (2 noues)"],
                   ["L", "L — angle (1 noue)"],
+                  ["croix", "Croix — aile traversante (4 noues)"],
                 ]}
                 onChange={(v) => majAile({}, v as TypeRaccord)}
               />

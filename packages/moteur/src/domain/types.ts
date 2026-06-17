@@ -24,8 +24,8 @@ export interface Section {
 /** Typologies de toiture supportées. */
 export type TypeToiture = "deux_pans" | "appentis" | "croupe";
 
-/** Type de raccord d'un volume secondaire (RFC 0001). L → 1 noue, T → 2 noues. */
-export type TypeRaccord = "L" | "T";
+/** Type de raccord d'un volume secondaire (RFC 0001). L → 1 noue, T → 2, croix → 4. */
+export type TypeRaccord = "L" | "T" | "croix";
 
 /**
  * Volume secondaire greffé perpendiculairement au volume principal (RFC 0001, Lot A).

@@ -90,10 +90,12 @@ export function calculerGeometrieComposee(p: ParametresProjet): GeometrieCompose
   const longueurNoueM = (W2 / 2) * Math.sqrt(2 + tan * tan);
   const hauteurAileM = (W2 / 2) * tan;
   const rampantAileM = (W2 / 2 + d) / cos;
-  const nbNoues = compo.raccord === "T" ? 2 : 1;
+  // croix = 2 ailes opposées (4 noues) ; T = 2 noues ; L = 1.
+  const nbAiles = compo.raccord === "croix" ? 2 : 1;
+  const nbNoues = compo.raccord === "croix" ? 4 : compo.raccord === "T" ? 2 : 1;
 
-  // Aile franche ajoutée : emprise W2 × saillie ⇒ surface développée = 2·rampantAile·saillie.
-  const surfaceAile = 2 * rampantAileM * compo.secondaire.longueurM;
+  // Chaque aile ajoute son emprise W2 × saillie ⇒ 2·rampantAile·saillie de surface développée.
+  const surfaceAile = nbAiles * 2 * rampantAileM * compo.secondaire.longueurM;
   const surfaceComposeeM2 = principal.surfaceToitureM2 + surfaceAile;
 
   return {

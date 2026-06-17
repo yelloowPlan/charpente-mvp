@@ -102,7 +102,7 @@ describe("genererNomenclatureComposee — multi-volumes (RFC 0001, Lot A2)", () 
   const base = projetParDefaut();
   const W = base.batiment.largeurM;
 
-  function composer(raccord: "L" | "T"): ParametresProjet {
+  function composer(raccord: "L" | "T" | "croix"): ParametresProjet {
     return {
       ...base,
       toiture: {
@@ -133,6 +133,15 @@ describe("genererNomenclatureComposee — multi-volumes (RFC 0001, Lot A2)", () 
     const r = genererNomenclatureComposee(composer("L"));
     const noue = r.elements.find((e) => e.role === "noue");
     assert.equal(noue?.quantite, 1);
+  });
+
+  it("croix : 4 chevrons de noue, bois > T (2 ailes)", () => {
+    const c = genererNomenclatureComposee(composer("croix"));
+    const t = genererNomenclatureComposee(composer("T"));
+    assert.equal(c.elements.find((e) => e.role === "noue")?.quantite, 4);
+    const vol = (r: typeof c) =>
+      r.elements.filter((e) => e.modeDebit === "barre").reduce((s, e) => s + e.quantite * e.longueurM, 0);
+    assert.ok(vol(c) > vol(t));
   });
 
   it("Lot B : aile plus étroite → chevron d'aile et noue plus courts", () => {

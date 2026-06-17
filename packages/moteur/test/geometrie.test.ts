@@ -88,6 +88,22 @@ describe("calculerGeometrieComposee — toitures composées (RFC 0001, Lot A)", 
     assert.ok(gc.longueurNoueM < gcPlein.longueurNoueM);
   });
 
+  it("croix → 4 noues, surface = principal + 4·rampantAile·saillie (2 ailes)", () => {
+    const W = base.batiment.largeurM;
+    const saillie = 4;
+    const p: ParametresProjet = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "croix", secondaire: { largeurM: W, longueurM: saillie, positionM: 5 } },
+      },
+    };
+    const gc = calculerGeometrieComposee(p);
+    assert.equal(gc.nbNoues, 4);
+    const g = calculerGeometrie(base);
+    closeTo(gc.surfaceComposeeM2, g.surfaceToitureM2 + 4 * g.rampantM * saillie, 6);
+  });
+
   it("L → 1 noue, surface exacte = même formule que le T (même emprise)", () => {
     const W = base.batiment.largeurM;
     const saillie = 3;

@@ -220,10 +220,11 @@ export function etudier(p: ParametresProjet): Etude {
 
   if (gc) {
     const r = p.toiture.composition!.raccord;
+    const nbNouesTxt = r === "croix" ? "4 noues" : r === "T" ? "2 noues" : "1 noue";
     alertes.push({
       niveau: "attention",
       message:
-        `Toiture composée (raccord ${r}, ${r === "T" ? "2 noues" : "1 noue"}) : ` +
+        `Toiture composée (raccord ${r}, ${nbNouesTxt}) : ` +
         "aile et noue(s) calculées (volumes de même largeur et même pente). Métré de la " +
         "zone de raccord ESTIMÉ et conservateur (léger sur-métré bois, jamais de sous-commande). " +
         "Le chevron de noue reprend 2 pans — section à valider par un bureau d'études.",

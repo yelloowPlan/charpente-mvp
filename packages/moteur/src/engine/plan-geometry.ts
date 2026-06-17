@@ -67,41 +67,36 @@ export function segmentsPlan(p: ParametresProjet, geo?: GeometrieToit): SegmentP
     }
   }
 
-  // Composition multi-volumes (RFC 0001) : aile perpendiculaire + noue(s).
-  // L'aile sort du long pan y = W vers y = W + saillie ; son faîtage rejoint le
-  // faîtage principal (y = W/2) au croisement ; noue(s) du coin rentrant au croisement.
+  // Composition multi-volumes (RFC 0001). Lot B : largeur d'aile W2 ≤ W1, le faîtage
+  // d'aile pénètre le pan principal à la profondeur W2/2. croix = 2 ailes opposées.
   const compo = p.toiture.composition;
   if (compo) {
-    // Lot B : largeur d'aile W2 ≤ W1. Le faîtage d'aile pénètre le pan principal à
-    // la profondeur W2/2 (y = W1 − W2/2) au lieu d'atteindre le faîtage (y = W1/2).
     const W2 = compo.secondaire.largeurM;
-    const xc = compo.secondaire.positionM; // x du faîtage de l'aile
-    const half = W2 / 2;
-    const yJ = W; // arête de jonction (long pan principal = W1)
-    const yEnd = W + compo.secondaire.longueurM; // pignon de l'aile
-    const yPen = W - W2 / 2; // point de pénétration sur le pan principal
-
-    // Contour de l'aile (3 côtés ; le côté de jonction reste ouvert)
-    s.push({ x1: xc - half, y1: yJ, x2: xc - half, y2: yEnd, type: "contour" });
-    s.push({ x1: xc - half, y1: yEnd, x2: xc + half, y2: yEnd, type: "contour" });
-    s.push({ x1: xc + half, y1: yEnd, x2: xc + half, y2: yJ, type: "contour" });
-
-    // Faîtage de l'aile (du point de pénétration au pignon)
-    s.push({ x1: xc, y1: yPen, x2: xc, y2: yEnd, type: "faitage" });
-
-    // Chevrons de l'aile (sur la saillie franche, au-delà de la jonction)
+    const xc = compo.secondaire.positionM;
     const S = compo.secondaire.longueurM;
-    const nb = Math.floor(S / entraxe) + 1;
-    for (let i = 0; i < nb; i++) {
-      const yk = yJ + (nb > 1 ? (i * S) / (nb - 1) : S / 2);
-      s.push({ x1: xc - half, y1: yk, x2: xc + half, y2: yk, type: "chevron" });
-    }
+    const half = W2 / 2;
+    const deuxNoues = compo.raccord !== "L"; // L → 1 noue, T/croix → 2 par aile
 
-    // Noue(s) : du coin rentrant au point de pénétration. T → 2, L → 1.
-    s.push({ x1: xc - half, y1: yJ, x2: xc, y2: yPen, type: "noue" });
-    if (compo.raccord === "T") {
-      s.push({ x1: xc + half, y1: yJ, x2: xc, y2: yPen, type: "noue" });
-    }
+    // Dessine une aile sur un côté : cote = +1 (sort par y=W, arrière), −1 (par y=0, avant).
+    const ajouterAile = (cote: 1 | -1) => {
+      const yJ = cote === 1 ? W : 0; // arête de jonction (égout principal)
+      const yEnd = yJ + cote * S; // pignon de l'aile
+      const yPen = yJ - cote * (W2 / 2); // pénétration sur le pan principal
+      s.push({ x1: xc - half, y1: yJ, x2: xc - half, y2: yEnd, type: "contour" });
+      s.push({ x1: xc - half, y1: yEnd, x2: xc + half, y2: yEnd, type: "contour" });
+      s.push({ x1: xc + half, y1: yEnd, x2: xc + half, y2: yJ, type: "contour" });
+      s.push({ x1: xc, y1: yPen, x2: xc, y2: yEnd, type: "faitage" });
+      const nb = Math.floor(S / entraxe) + 1;
+      for (let i = 0; i < nb; i++) {
+        const yk = yJ + cote * (nb > 1 ? (i * S) / (nb - 1) : S / 2);
+        s.push({ x1: xc - half, y1: yk, x2: xc + half, y2: yk, type: "chevron" });
+      }
+      s.push({ x1: xc - half, y1: yJ, x2: xc, y2: yPen, type: "noue" });
+      if (deuxNoues) s.push({ x1: xc + half, y1: yJ, x2: xc, y2: yPen, type: "noue" });
+    };
+
+    ajouterAile(1);
+    if (compo.raccord === "croix") ajouterAile(-1);
   }
 
   return s;

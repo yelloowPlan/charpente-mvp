@@ -101,7 +101,7 @@ describe("genererOssature3D — appentis", () => {
 describe("ossature 3D composée — multi-volumes (RFC 0001, Lot A4)", () => {
   const base = projetParDefaut();
   const W = base.batiment.largeurM;
-  const composer = (raccord: "L" | "T"): ParametresProjet => ({
+  const composer = (raccord: "L" | "T" | "croix"): ParametresProjet => ({
     ...base,
     toiture: {
       ...base.toiture,
@@ -128,6 +128,15 @@ describe("ossature 3D composée — multi-volumes (RFC 0001, Lot A4)", () => {
   it("L : 1 noue", () => {
     const o = genererOssatureComposee3D(composer("L"));
     assert.equal(o.filter((x) => x.role === "noue").length, 1);
+  });
+
+  it("croix : 4 noues, ailes des deux côtés (z<0 et z>0)", () => {
+    const o = genererOssatureComposee3D(composer("croix"));
+    assert.equal(o.filter((x) => x.role === "noue").length, 4);
+    const faitieres = o.filter((x) => x.role === "faitiere");
+    // pignons d'aile (point b) de part et d'autre du principal
+    assert.ok(faitieres.some((f) => f.b[2] < 0) && faitieres.some((f) => f.b[2] > 0));
+    for (const x of o) for (const v of [...x.a, ...x.b]) assert.ok(Number.isFinite(v));
   });
 
   it("aucune coordonnée NaN dans l'ossature composée", () => {

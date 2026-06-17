@@ -274,28 +274,31 @@ export function genererOssatureComposee3D(
   const S = compo.secondaire.longueurM;
   const Xc = compo.secondaire.positionM - Lp / 2;
   const half = W2 / 2;
-  const zJ = -W / 2; // ligne de jonction (coins rentrants, égout principal)
-  const zEnd = -(W / 2 + S); // pignon de l'aile
-  const zPen = -(W - W2) / 2; // pénétration du faîtage d'aile sur le pan principal (0 si W2 = W1)
+  const deuxNoues = compo.raccord !== "L";
   const secChev = { largeurMm: s.chevron.largeurMm, hauteurMm: s.chevron.hauteurMm };
   const secPanne = { largeurMm: s.panne.largeurMm, hauteurMm: s.panne.hauteurMm };
   const secAret = { largeurMm: s.arbaletrier.largeurMm, hauteurMm: s.arbaletrier.hauteurMm };
 
-  poutres.push({ role: "faitiere", a: [Xc, h2, zPen], b: [Xc, h2, zEnd], ...secPanne });
-  poutres.push({ role: "sabliere", a: [Xc - half, 0, zJ], b: [Xc - half, 0, zEnd], ...secPanne });
-  poutres.push({ role: "sabliere", a: [Xc + half, 0, zJ], b: [Xc + half, 0, zEnd], ...secPanne });
+  // cote = +1 (aile arrière, z < 0) ou −1 (aile avant, z > 0 — pour la croix).
+  const ajouterAile = (cote: 1 | -1) => {
+    const zJ = -cote * (W / 2); // égout principal (coins rentrants)
+    const zEnd = -cote * (W / 2 + S); // pignon de l'aile
+    const zPen = -cote * ((W - W2) / 2); // pénétration sur le pan principal
+    poutres.push({ role: "faitiere", a: [Xc, h2, zPen], b: [Xc, h2, zEnd], ...secPanne });
+    poutres.push({ role: "sabliere", a: [Xc - half, 0, zJ], b: [Xc - half, 0, zEnd], ...secPanne });
+    poutres.push({ role: "sabliere", a: [Xc + half, 0, zJ], b: [Xc + half, 0, zEnd], ...secPanne });
+    const nb = Math.floor(S / p.charpente.entraxeChevronM) + 1;
+    for (let i = 0; i < nb; i++) {
+      const z = zJ - cote * (nb > 1 ? (i * S) / (nb - 1) : S / 2);
+      poutres.push({ role: "chevron", a: [Xc - half, 0, z], b: [Xc, h2, z], ...secChev });
+      poutres.push({ role: "chevron", a: [Xc + half, 0, z], b: [Xc, h2, z], ...secChev });
+    }
+    poutres.push({ role: "noue", a: [Xc - half, 0, zJ], b: [Xc, h2, zPen], ...secAret });
+    if (deuxNoues) poutres.push({ role: "noue", a: [Xc + half, 0, zJ], b: [Xc, h2, zPen], ...secAret });
+  };
 
-  const nb = Math.floor(S / p.charpente.entraxeChevronM) + 1;
-  for (let i = 0; i < nb; i++) {
-    const z = zJ - (nb > 1 ? (i * S) / (nb - 1) : S / 2);
-    poutres.push({ role: "chevron", a: [Xc - half, 0, z], b: [Xc, h2, z], ...secChev });
-    poutres.push({ role: "chevron", a: [Xc + half, 0, z], b: [Xc, h2, z], ...secChev });
-  }
-
-  poutres.push({ role: "noue", a: [Xc - half, 0, zJ], b: [Xc, h2, zPen], ...secAret });
-  if (compo.raccord === "T") {
-    poutres.push({ role: "noue", a: [Xc + half, 0, zJ], b: [Xc, h2, zPen], ...secAret });
-  }
+  ajouterAile(1);
+  if (compo.raccord === "croix") ajouterAile(-1);
   return poutres;
 }
 
@@ -313,20 +316,24 @@ export function genererLattageComposee3D(p: ParametresProjet, gc?: GeometrieComp
   const S = compo.secondaire.longueurM;
   const Xc = compo.secondaire.positionM - Lp / 2;
   const half = W2 / 2;
-  const zEnd = -(W / 2 + S);
-  const zPen = -(W - W2) / 2;
   const pureau = p.toiture.couverture.pureauM;
   const rampant = W2 / 2 / Math.cos((p.toiture.penteDeg * Math.PI) / 180); // rampant d'aile (sans débord)
   const nRangs = Math.max(1, Math.floor(rampant / pureau));
 
-  for (let i = 0; i <= nRangs; i++) {
-    const t = Math.min(1, (i * pureau) / rampant);
-    const y = h2 * t;
-    const xG = Xc - half * (1 - t); // versant gauche (vers le faîtage)
-    const xD = Xc + half * (1 - t); // versant droit
-    liteaux.push({ role: "liteau", a: [xG, y, zPen], b: [xG, y, zEnd], largeurMm: sec.largeurMm, hauteurMm: sec.hauteurMm });
-    liteaux.push({ role: "liteau", a: [xD, y, zPen], b: [xD, y, zEnd], largeurMm: sec.largeurMm, hauteurMm: sec.hauteurMm });
-  }
+  const ajouterAile = (cote: 1 | -1) => {
+    const zEnd = -cote * (W / 2 + S);
+    const zPen = -cote * ((W - W2) / 2);
+    for (let i = 0; i <= nRangs; i++) {
+      const t = Math.min(1, (i * pureau) / rampant);
+      const y = h2 * t;
+      const xG = Xc - half * (1 - t);
+      const xD = Xc + half * (1 - t);
+      liteaux.push({ role: "liteau", a: [xG, y, zPen], b: [xG, y, zEnd], largeurMm: sec.largeurMm, hauteurMm: sec.hauteurMm });
+      liteaux.push({ role: "liteau", a: [xD, y, zPen], b: [xD, y, zEnd], largeurMm: sec.largeurMm, hauteurMm: sec.hauteurMm });
+    }
+  };
+  ajouterAile(1);
+  if (compo.raccord === "croix") ajouterAile(-1);
   return liteaux;
 }
 
@@ -343,12 +350,16 @@ export function genererCouvertureComposee3D(p: ParametresProjet, gc?: GeometrieC
   const S = compo.secondaire.longueurM;
   const Xc = compo.secondaire.positionM - Lp / 2;
   const half = W2 / 2;
-  const zJ = -W / 2;
-  const zEnd = -(W / 2 + S);
-  const zPen = -(W - W2) / 2;
 
   // Deux versants de l'aile (quadrilatères, arête haute = noue jusqu'à la pénétration).
-  pans.push({ points: [[Xc - half, 0, zJ], [Xc - half, 0, zEnd], [Xc, h2, zEnd], [Xc, h2, zPen]] });
-  pans.push({ points: [[Xc + half, 0, zJ], [Xc + half, 0, zEnd], [Xc, h2, zEnd], [Xc, h2, zPen]] });
+  const ajouterAile = (cote: 1 | -1) => {
+    const zJ = -cote * (W / 2);
+    const zEnd = -cote * (W / 2 + S);
+    const zPen = -cote * ((W - W2) / 2);
+    pans.push({ points: [[Xc - half, 0, zJ], [Xc - half, 0, zEnd], [Xc, h2, zEnd], [Xc, h2, zPen]] });
+    pans.push({ points: [[Xc + half, 0, zJ], [Xc + half, 0, zEnd], [Xc, h2, zEnd], [Xc, h2, zPen]] });
+  };
+  ajouterAile(1);
+  if (compo.raccord === "croix") ajouterAile(-1);
   return pans;
 }

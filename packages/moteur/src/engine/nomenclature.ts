@@ -287,20 +287,25 @@ export function genererNomenclatureComposee(
   // moitié pour un L à une seule noue), clampé ≥ 0. Les empannons (ajoutés plus
   // bas) les remplacent ⇒ le métré reste ≥ principal (garde anti-sous-métré
   // vérifiée par test), juste moins sur-évalué qu'avant.
+  // croix = 2 ailes opposées ⇒ quantités d'aile et retrait sur les deux pans.
+  const nbAiles = compo.raccord === "croix" ? 2 : 1;
   const colsEmprise = Math.max(0, Math.floor(W2 / entraxe) - 1);
-  const retraitCommuns = compo.raccord === "T" ? colsEmprise : Math.floor(colsEmprise / 2);
+  const retraitCommuns =
+    compo.raccord === "L" ? Math.floor(colsEmprise / 2) : colsEmprise * nbAiles;
   const elements = principal.elements.map((el) =>
     el.role === "chevron" && el.nom === "Chevron" && retraitCommuns > 0
       ? {
           ...el,
           quantite: Math.max(0, el.quantite - retraitCommuns),
-          formule: `${el.formule} − ${retraitCommuns} recoupé(s) par la noue`,
+          formule: `${el.formule} − ${retraitCommuns} recoupé(s) par la/les noue(s)`,
         }
       : el,
   );
 
-  // --- Aile : deux_pans de longueur de faîtage = saillie S ---
-  const nbChevAile = 2 * (Math.floor(S / entraxe) + 1);
+  const sufAile = nbAiles > 1 ? ` ×${nbAiles} ailes` : "";
+
+  // --- Aile(s) : deux_pans de longueur de faîtage = saillie S ---
+  const nbChevAile = nbAiles * 2 * (Math.floor(S / entraxe) + 1);
   elements.push({
     role: "chevron",
     nom: "Chevron (aile)",
@@ -308,9 +313,9 @@ export function genererNomenclatureComposee(
     section: c.sections.chevron,
     quantite: nbChevAile,
     modeDebit: "barre",
-    formule: `2 pans × (⌊${S}/${entraxe}⌋ + 1) — volume secondaire (saillie ${S} m)`,
+    formule: `${nbAiles}×2 pans × (⌊${S}/${entraxe}⌋ + 1) — volume(s) secondaire(s) (saillie ${S} m)`,
   });
-  const nbRangsAile = 2 * (Math.floor(R / pureau) + 1);
+  const nbRangsAile = nbAiles * 2 * (Math.floor(R / pureau) + 1);
   elements.push({
     role: "liteau",
     nom: "Liteau (aile)",
@@ -318,7 +323,7 @@ export function genererNomenclatureComposee(
     section: c.sections.liteau,
     quantite: nbRangsAile,
     modeDebit: "lineaire",
-    formule: `2 pans × (⌊${R.toFixed(2)}/${pureau}⌋ + 1) rangs sur la saillie`,
+    formule: `${nbAiles}×2 pans × (⌊${R.toFixed(2)}/${pureau}⌋ + 1) rangs sur la saillie`,
   });
   if (c.ecranSousToiture) {
     elements.push({
@@ -336,18 +341,18 @@ export function genererNomenclatureComposee(
     nom: "Panne faîtière (aile)",
     longueurM: S,
     section: c.sections.panne,
-    quantite: 1,
+    quantite: nbAiles,
     modeDebit: "barre",
-    formule: `1 faîtière d'aile sur la saillie (${S} m)`,
+    formule: `1 faîtière d'aile sur la saillie (${S} m)${sufAile}`,
   });
   elements.push({
     role: "panne_sabliere",
     nom: "Sablière (aile)",
     longueurM: S,
     section: c.sections.panne,
-    quantite: 2,
+    quantite: 2 * nbAiles,
     modeDebit: "barre",
-    formule: `2 sablières d'aile (une par mur de rive de l'aile)`,
+    formule: `2 sablières d'aile (une par mur de rive)${sufAile}`,
   });
 
   // --- Noue(s) : chevron de noue (reprend 2 pans → section renforcée = arbalétrier) ---

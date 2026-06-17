@@ -52,6 +52,21 @@ describe("planMasseSvg", () => {
     assert.ok(nbLignes(svg) > nbLignes(planMasseSvg(base)));
   });
 
+  it("composé croix : 4 noues (N1..N4)", () => {
+    const base = projetParDefaut();
+    const W = base.batiment.largeurM;
+    const p = projetParDefaut({
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "croix", secondaire: { largeurM: W, longueurM: 4, positionM: 5 } },
+      },
+    });
+    const svg = planMasseSvg(p);
+    assert.ok(svg.includes(">N1<") && svg.includes(">N4<"));
+    assert.ok(!svg.includes("NaN"));
+  });
+
   it("composé L : une seule noue (N1, pas de N2)", () => {
     const base = projetParDefaut();
     const W = base.batiment.largeurM;
