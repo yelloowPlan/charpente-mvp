@@ -154,7 +154,9 @@ A1 types + `calculerGeometrieComposee` (+ tests noue/surface) · A2 nomenclature
 | A4 3D | ✅ | `genererOssature/Lattage/CouvertureComposee3D`, rôle `noue` |
 | A5 UI + câblage | ✅ | `etudier` branché (surface composée au devis), éditeur « Volume secondaire », preset « Maison en T », sous-titre dynamique |
 
-Reste Lot A possible (non bloquant) : retrait fin des chevrons recoupés (passer d'estimé à exact), `mlNoues` dans le métré couverture, dérivation propre de la surface **L**.
+Durcissements livrés après coup : `mlNoues` + linéaires d'aile au métré couverture · validation des entrées de composition (saillie > 0, largeurs égales, position dans le bâtiment) + **dégradation gracieuse** hors deux_pans (aile ignorée, purge UI au changement de typologie) · chevrons d'aile sur le plan 2D.
+
+Reste Lot A possible (non bloquant, NON fait — choix assumés) : **retrait fin des chevrons recoupés** (passer d'estimé à exact — faible valeur, le sur-métré conservateur est sûr) ; **surface du L exacte** (exigerait de modéliser l'arêtier extérieur du raccord en L — laissé `surfaceExacte:false` plutôt que fausse précision).
 
 ## 9. Hors périmètre (explicite)
 
