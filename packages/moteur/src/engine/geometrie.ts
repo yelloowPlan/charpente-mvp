@@ -41,8 +41,9 @@ export interface GeometrieComposee {
   /** surface développée totale, raccord inclus (m²) */
   surfaceComposeeM2: number;
   /**
-   * true si `surfaceComposeeM2` est en forme close exacte (cas T régulier).
-   * false ⇒ approximation additive (L : recouvrement de jonction non encore dérivé).
+   * true si `surfaceComposeeM2` est exacte. Pour une pente uniforme, la surface
+   * développée vaut emprise/cos α ; L et T ont la même emprise (l'aile ajoute la
+   * même bande W·S au-delà du principal) ⇒ la forme additive est exacte pour les deux.
    */
   surfaceExacte: boolean;
 }
@@ -53,10 +54,10 @@ export interface GeometrieComposee {
  * Noue régulière : par symétrie avec l'arêtier de croupe, sa longueur vraie vaut
  * `(W/2)·√(2+tan²α)` (même formule que `longueurAretierM`).
  *
- * Surface (cas T régulier, forme close prouvée) : l'aile greffée ajoute sa partie
- * franche `2·rampant·saillie` ; au droit du raccord, la « mortaise » retirée du pan
- * principal est exactement comblée par les deux versants de l'aile (bilan nul).
- * ⇒ `surface = surfacePrincipal + 2·rampant·saillie`.
+ * Surface (forme close prouvée, L et T) : pour une pente uniforme, la surface
+ * développée vaut emprise/cos α. L'aile ajoute la même bande d'emprise `W·S`
+ * au-delà du principal (que le raccord soit centré=T ou en bout=L), soit
+ * `2·rampant·saillie` de surface développée. ⇒ `surface = surfacePrincipal + 2·rampant·saillie`.
  *
  * Sans `composition`, renvoie la géométrie mono-volume telle quelle (rétro-compat).
  */
@@ -88,7 +89,7 @@ export function calculerGeometrieComposee(p: ParametresProjet): GeometrieCompose
     longueurNoueM,
     nbNoues,
     surfaceComposeeM2,
-    surfaceExacte: compo.raccord === "T",
+    surfaceExacte: true, // emprise/cos α : exact pour L et T (même emprise)
   };
 }
 

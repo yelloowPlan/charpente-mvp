@@ -250,9 +250,10 @@ function genererCroupe(
  * sous-commande) : nomenclature du volume principal **inchangée** + apport de l'aile
  * (deux_pans de longueur = saillie) + pièces de noue (chevron de noue + empannons).
  *
- * Au droit du raccord, on n'effectue PAS le retrait fin des chevrons communs
- * recoupés : ils restent comptés ET on ajoute les empannons → léger sur-métré bois
- * dans la zone de jonction, du bon côté pour un devis. D'où `estimation: true`.
+ * Au droit du raccord, les chevrons communs recoupés par la noue sont retirés de
+ * façon PRUDENTE puis remplacés par les empannons : le métré reste ≥ principal
+ * (jamais de sous-commande) tout en étant moins sur-évalué. Quantités discrètes
+ * approchées ⇒ `estimation: true`.
  *
  * Sans `composition`, renvoie exactement la nomenclature mono-volume (rétro-compat).
  */
@@ -272,13 +273,30 @@ export function genererNomenclatureComposee(
   if (!compo) return principal;
 
   const c = p.charpente;
-  const elements = [...principal.elements];
   const W = p.batiment.largeurM;
   const S = compo.secondaire.longueurM;
   const entraxe = c.entraxeChevronM;
   const pureau = p.toiture.couverture.pureauM;
   const cos = Math.cos((p.toiture.penteDeg * Math.PI) / 180);
   const R = g.principal.rampantM;
+
+  // Retrait des chevrons communs du pan principal recoupés par la/les noue(s) :
+  // dans l'emprise de l'aile (largeur W), les chevrons du pan de jonction
+  // deviennent des empannons. On en retire un nombre PRUDENT (⌊W/entraxe⌋−1, et
+  // moitié pour un L à une seule noue), clampé ≥ 0. Les empannons (ajoutés plus
+  // bas) les remplacent ⇒ le métré reste ≥ principal (garde anti-sous-métré
+  // vérifiée par test), juste moins sur-évalué qu'avant.
+  const colsEmprise = Math.max(0, Math.floor(W / entraxe) - 1);
+  const retraitCommuns = compo.raccord === "T" ? colsEmprise : Math.floor(colsEmprise / 2);
+  const elements = principal.elements.map((el) =>
+    el.role === "chevron" && el.nom === "Chevron" && retraitCommuns > 0
+      ? {
+          ...el,
+          quantite: Math.max(0, el.quantite - retraitCommuns),
+          formule: `${el.formule} − ${retraitCommuns} recoupé(s) par la noue`,
+        }
+      : el,
+  );
 
   // --- Aile : deux_pans de longueur de faîtage = saillie S ---
   const nbChevAile = 2 * (Math.floor(S / entraxe) + 1);

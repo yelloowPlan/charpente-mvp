@@ -135,6 +135,14 @@ describe("genererNomenclatureComposee — multi-volumes (RFC 0001, Lot A2)", () 
     assert.equal(noue?.quantite, 1);
   });
 
+  it("retrait : chevrons communs recoupés retirés (< principal), bois total ≥ principal", () => {
+    const compo = genererNomenclatureComposee(composer("T"));
+    const principal = genererNomenclature(base);
+    const communs = (r: typeof compo) =>
+      r.elements.filter((e) => e.role === "chevron" && e.nom === "Chevron").reduce((s, e) => s + e.quantite, 0);
+    assert.ok(communs(compo) < communs(principal)); // retrait appliqué
+  });
+
   it("conservateur : le bois composé ≥ bois principal seul (jamais de sous-métré)", () => {
     const compo = genererNomenclatureComposee(composer("T"));
     const principal = genererNomenclature(base);

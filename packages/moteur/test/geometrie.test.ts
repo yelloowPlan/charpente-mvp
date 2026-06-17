@@ -55,18 +55,24 @@ describe("calculerGeometrieComposee — toitures composées (RFC 0001, Lot A)", 
     closeTo(gc.surfaceComposeeM2, g.surfaceToitureM2 + 2 * g.rampantM * saillie, 6);
   });
 
-  it("L → 1 noue, surface marquée approchée", () => {
+  it("L → 1 noue, surface exacte = même formule que le T (même emprise)", () => {
     const W = base.batiment.largeurM;
-    const p: ParametresProjet = {
+    const saillie = 3;
+    const mk = (raccord: "L" | "T"): ParametresProjet => ({
       ...base,
       toiture: {
         ...base.toiture,
-        composition: { raccord: "L", secondaire: { largeurM: W, longueurM: 3, positionM: 0 } },
+        composition: { raccord, secondaire: { largeurM: W, longueurM: saillie, positionM: 5 } },
       },
-    };
-    const gc = calculerGeometrieComposee(p);
-    assert.equal(gc.nbNoues, 1);
-    assert.equal(gc.surfaceExacte, false);
+    });
+    const gcL = calculerGeometrieComposee(mk("L"));
+    const gcT = calculerGeometrieComposee(mk("T"));
+    assert.equal(gcL.nbNoues, 1);
+    assert.equal(gcL.surfaceExacte, true);
+    // L et T : même surface développée (emprise identique)
+    closeTo(gcL.surfaceComposeeM2, gcT.surfaceComposeeM2, 9);
+    const g = calculerGeometrie(base);
+    closeTo(gcL.surfaceComposeeM2, g.surfaceToitureM2 + 2 * g.rampantM * saillie, 6);
   });
 });
 
