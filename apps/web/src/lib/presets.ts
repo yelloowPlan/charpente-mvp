@@ -47,10 +47,20 @@ function maisonEnT(): ParametresProjet {
   return p;
 }
 
+function maisonAvecExtension(): ParametresProjet {
+  const p = projetParDefaut();
+  p.batiment = { longueurM: 10, largeurM: 8, debordRampantM: 0.4, debordPignonM: 0.3 };
+  p.toiture.penteDeg = 40;
+  // Aile plus étroite (5 m < 8 m) greffée en L : faîtage qui pénètre le pan principal.
+  p.toiture.composition = { raccord: "L", secondaire: { largeurM: 5, longueurM: 4, positionM: 7.5 } };
+  return p;
+}
+
 export const PRESETS: Preset[] = [
   { id: "maison", nom: "Maison 2 pans", projet: maison2Pans() },
   { id: "abri", nom: "Abri / carport", projet: abriCarport() },
   { id: "extension", nom: "Extension", projet: extension() },
   { id: "croupe", nom: "Pavillon croupe", projet: pavillonCroupe() },
   { id: "maison_t", nom: "Maison en T (noues)", projet: maisonEnT() },
+  { id: "maison_ext", nom: "Maison + extension étroite", projet: maisonAvecExtension() },
 ];

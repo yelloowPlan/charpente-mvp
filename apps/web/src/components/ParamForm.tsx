@@ -79,8 +79,8 @@ export function ParamForm({ projet, onChange }: Props) {
   const setCharp = <K extends keyof ParametresCharpente>(k: K, v: ParametresCharpente[K]) =>
     onChange({ ...projet, charpente: { ...projet.charpente, [k]: v } });
 
-  // Composition multi-volumes (RFC 0001). La largeur de l'aile est synchronisée
-  // sur la portée principale (Lot A = volumes de même largeur).
+  // Composition multi-volumes (RFC 0001). Lot B : la largeur de l'aile W2 peut être
+  // ≤ portée principale (extension plus étroite). Défaut = largeur principale.
   const compo = projet.toiture.composition;
   const setComposition = (c: Composition | undefined) =>
     onChange({ ...projet, toiture: { ...projet.toiture, composition: c } });
@@ -88,7 +88,7 @@ export function ParamForm({ projet, onChange }: Props) {
     setComposition({
       raccord: raccord ?? compo?.raccord ?? "T",
       secondaire: {
-        largeurM: projet.batiment.largeurM,
+        largeurM: compo?.secondaire.largeurM ?? projet.batiment.largeurM,
         longueurM: compo?.secondaire.longueurM ?? 4,
         positionM: compo?.secondaire.positionM ?? projet.batiment.longueurM / 2,
         ...patch,
@@ -196,6 +196,12 @@ export function ParamForm({ projet, onChange }: Props) {
                 onChange={(v) => majAile({}, v as TypeRaccord)}
               />
               <Nombre
+                label="Largeur de l'aile (m)"
+                value={compo.secondaire.largeurM}
+                step={0.5}
+                onChange={(v) => majAile({ largeurM: v })}
+              />
+              <Nombre
                 label="Saillie de l'aile (m)"
                 value={compo.secondaire.longueurM}
                 step={0.5}
@@ -208,8 +214,9 @@ export function ParamForm({ projet, onChange }: Props) {
                 onChange={(v) => majAile({ positionM: v })}
               />
               <p className="aide">
-                Aile de même largeur ({projet.batiment.largeurM.toLocaleString("fr-FR")} m) et même pente que le
-                volume principal. Métré du raccord estimé (conservateur).
+                Aile de même pente, largeur ≤ portée principale (
+                {projet.batiment.largeurM.toLocaleString("fr-FR")} m). Plus étroite, son faîtage
+                pénètre le pan principal. Métré du raccord estimé (conservateur).
               </p>
             </>
           )}
