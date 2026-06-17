@@ -111,12 +111,15 @@ export function validerProjet(p: ParametresProjet): Alerte[] {
     } else if (!(sec.longueurM > 0)) {
       bloquant("Toiture composée : la saillie de l'aile doit être > 0.");
     }
-    if (Math.abs(sec.largeurM - p.batiment.largeurM) > 1e-6) {
+    if (!(sec.largeurM > 0)) {
+      bloquant("Toiture composée : la largeur de l'aile doit être > 0.");
+    } else if (sec.largeurM > p.batiment.largeurM + 1e-6) {
       a.push({
         niveau: "attention",
         message:
-          `Toiture composée : largeur d'aile (${sec.largeurM} m) ≠ portée principale ` +
-          `(${p.batiment.largeurM} m). Lot A suppose des largeurs égales — résultat dégradé.`,
+          `Toiture composée : aile (${sec.largeurM} m) plus large que la portée principale ` +
+          `(${p.batiment.largeurM} m) — non supporté (le principal pénétrerait l'aile). ` +
+          "Résultat dégradé : prévoir une aile de largeur ≤ portée principale.",
       });
     }
     if (sec.positionM < 0 || sec.positionM > Lp) {

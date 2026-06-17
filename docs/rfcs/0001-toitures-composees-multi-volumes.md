@@ -1,6 +1,6 @@
 # RFC 0001 — Toitures composées multi-volumes (noues)
 
-- **Statut** : **Lot A implémenté** (L + T réguliers, bout en bout) — Lots B/C à venir
+- **Statut** : **Lot A terminé** · **Lot B en cours** (largeurs différentes) · Lot C à venir
 - **Date** : 2026-06-17
 - **Périmètre** : moteur (`packages/moteur`) + app (`apps/web`)
 - **Pré-requis lus** : `geometrie.ts`, `nomenclature.ts` (`genererCroupe`), `ossature.ts`, `plan-geometry.ts`, `domain/types.ts`
@@ -159,6 +159,21 @@ Durcissements livrés après coup : `mlNoues` + linéaires d'aile au métré cou
 **Lot A terminé.** Les deux derniers points ont été traités :
 - **Surface du L** : prouvée exacte via emprise/cos α (L et T ont la même emprise) ⇒ `surfaceExacte:true`. La surface développée d'une toiture de pente uniforme = emprise au sol / cos α ; l'aile ajoute la même bande `W·S` quel que soit le raccord.
 - **Retrait des chevrons recoupés** : les communs du pan de jonction dans l'emprise de l'aile sont retirés (⌊W/entraxe⌋−1, moitié pour un L) puis remplacés par les empannons. Invariant **« métré composé ≥ principal »** garanti (test) — moins sur-évalué qu'avant, jamais de sous-commande. Reste `estimation:true` car les quantités de chevrons sont discrètes (l'exactitude au chevron près est convention-dépendante).
+
+## 8 ter. Lot B — aile de largeur différente (cadrage + dérivation)
+
+Cas réel le plus fréquent : **extension plus étroite** que le corps principal (`W2 < W1`), même pente α. Dérivation (repère plan : aile sortant du long pan principal `y = W1`, faîtage d'aile à `x = xc`) :
+
+- **La noue projette toujours à 45° en plan** : l'intersection de deux plans de même pente α a une projection à pente ±1, quelle que soit la largeur. (Posant `H_principal = (W1−y)·tanα` et `H_aile = (x−xc+W2/2)·tanα`, leur égalité donne `y = W1 − W2/2 − (x−xc)`, pente −1.)
+- **Longueur de noue** = `(W2/2)·√(2+tan²α)` — gouvernée par la **petite** largeur W2.
+- **Pénétration** : le faîtage de l'aile (hauteur `h2 = (W2/2)·tanα < h1`) n'atteint PAS le faîtage principal ; il bute sur le pan principal au point plan `y = W1 − W2/2` (profondeur `W2/2` depuis l'égout principal). Le faîtage d'aile a donc une longueur plan `S2 + W2/2`.
+- **Surface** = emprise/cos α = `principal + 2·rampantAile·S2`, avec `rampantAile = (W2/2 + d)/cosα`.
+
+**Réduction au Lot A** : à `W2 = W1`, `h2 = h1`, la pénétration `y = W1/2` redevient le **croisement des faîtages**, et toutes les formules retombent exactement sur le Lot A. ⇒ généralisation unifiée (remplacer `W → W2`, hauteur `h → h2`, jonction `croisement → pénétration`), Lot A = cas particulier, tests Lot A inchangés.
+
+**Périmètre Lot B (cet incrément)** : `W2 ≤ W1` uniquement (aile même largeur ou plus étroite). `W2 > W1` (aile plus large → c'est le principal qui pénètre) et la **croix (+, 4 noues)** restent pour plus tard. Pentes différentes / lucarnes = Lot C.
+
+Incréments : **B1** géométrie (W2, h2, pénétration) · **B2** nomenclature (dimensions d'aile en W2) · **B3** plan 2D/DXF (faîtage pénétrant) · **B4** 3D (pénétration) · **B5** UI (déverrouiller la largeur d'aille + validation `W2 ≤ W1`).
 
 ## 9. Hors périmètre (explicite)
 

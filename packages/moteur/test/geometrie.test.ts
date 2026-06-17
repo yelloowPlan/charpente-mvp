@@ -55,6 +55,39 @@ describe("calculerGeometrieComposee — toitures composées (RFC 0001, Lot A)", 
     closeTo(gc.surfaceComposeeM2, g.surfaceToitureM2 + 2 * g.rampantM * saillie, 6);
   });
 
+  it("Lot B — aile plus étroite (W2 < W1) : noue & hauteur en W2, surface emprise/cosα", () => {
+    const W1 = base.batiment.largeurM; // 8
+    const W2 = 5;
+    const saillie = 4;
+    const d = base.batiment.debordRampantM;
+    const alpha = (base.toiture.penteDeg * Math.PI) / 180;
+    const p: ParametresProjet = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W2, longueurM: saillie, positionM: 5 } },
+      },
+    };
+    const gc = calculerGeometrieComposee(p);
+    closeTo(gc.largeurAileM, W2, 9);
+    closeTo(gc.longueurNoueM, (W2 / 2) * Math.sqrt(2 + Math.tan(alpha) ** 2), 9);
+    closeTo(gc.hauteurAileM, (W2 / 2) * Math.tan(alpha), 9);
+    // surface = principal + 2·rampantAile·saillie, rampantAile = (W2/2 + d)/cosα
+    const g = calculerGeometrie(base);
+    const rampantAile = (W2 / 2 + d) / Math.cos(alpha);
+    closeTo(gc.surfaceComposeeM2, g.surfaceToitureM2 + 2 * rampantAile * saillie, 6);
+    assert.equal(gc.surfaceExacte, true);
+    // noue plus courte que pour une aile pleine largeur (W1)
+    const gcPlein = calculerGeometrieComposee({
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W1, longueurM: saillie, positionM: 5 } },
+      },
+    });
+    assert.ok(gc.longueurNoueM < gcPlein.longueurNoueM);
+  });
+
   it("L → 1 noue, surface exacte = même formule que le T (même emprise)", () => {
     const W = base.batiment.largeurM;
     const saillie = 3;

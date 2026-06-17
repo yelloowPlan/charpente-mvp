@@ -123,21 +123,23 @@ describe("etudier — pipeline complet", () => {
     assert.ok(e.alertes.some((x) => x.message.includes("aile ignorée")));
   });
 
-  it("composition : largeur d'aile ≠ portée → attention non bloquante", () => {
+  it("composition : aile plus étroite supportée (aucune alerte largeur), aile plus large → attention", () => {
     const base = projetParDefaut();
-    const p = {
+    const W = base.batiment.largeurM;
+    const mk = (largeurM: number) => ({
       ...base,
       toiture: {
         ...base.toiture,
-        composition: {
-          raccord: "T" as const,
-          secondaire: { largeurM: base.batiment.largeurM + 2, longueurM: 4, positionM: 5 },
-        },
+        composition: { raccord: "T" as const, secondaire: { largeurM, longueurM: 4, positionM: 5 } },
       },
-    };
-    const alertes = validerProjet(p);
-    assert.equal(alertes.filter((x) => x.niveau === "bloquant").length, 0);
-    assert.ok(alertes.some((x) => x.niveau === "attention" && x.message.includes("largeur d'aile")));
+    });
+    // plus étroite (W2 < W1) : supportée, pas d'alerte sur la largeur
+    const etroite = validerProjet(mk(W - 2));
+    assert.ok(!etroite.some((x) => x.message.includes("plus large")));
+    // plus large (W2 > W1) : attention non bloquante
+    const large = validerProjet(mk(W + 2));
+    assert.equal(large.filter((x) => x.niveau === "bloquant").length, 0);
+    assert.ok(large.some((x) => x.niveau === "attention" && x.message.includes("plus large")));
   });
 
   it("lève ErreurValidation si un paramètre est bloquant", () => {

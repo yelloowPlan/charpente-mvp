@@ -38,6 +38,10 @@ export interface GeometrieComposee {
   longueurNoueM: number;
   /** nombre de noues (L → 1, T → 2 ; 0 si mono-volume) */
   nbNoues: number;
+  /** largeur (portée) de l'aile (m) — W2 ; 0 si mono-volume */
+  largeurAileM: number;
+  /** hauteur de faîtage de l'aile au-dessus de sa sablière (m) = (W2/2)·tanα */
+  hauteurAileM: number;
   /** surface développée totale, raccord inclus (m²) */
   surfaceComposeeM2: number;
   /**
@@ -69,27 +73,37 @@ export function calculerGeometrieComposee(p: ParametresProjet): GeometrieCompose
       principal,
       longueurNoueM: 0,
       nbNoues: 0,
+      largeurAileM: 0,
+      hauteurAileM: 0,
       surfaceComposeeM2: principal.surfaceToitureM2,
       surfaceExacte: true,
     };
   }
 
-  const W = p.batiment.largeurM;
+  // Lot B : la largeur de l'aile W2 peut différer de la portée principale W1.
+  // Tout se généralise (noue, hauteur, pénétration) et redevient le Lot A si W2 = W1.
+  const W2 = compo.secondaire.largeurM;
+  const d = p.batiment.debordRampantM;
   const alpha = degVersRad(p.toiture.penteDeg);
   const tan = Math.tan(alpha);
-  const longueurNoueM = (W / 2) * Math.sqrt(2 + tan * tan);
+  const cos = Math.cos(alpha);
+  const longueurNoueM = (W2 / 2) * Math.sqrt(2 + tan * tan);
+  const hauteurAileM = (W2 / 2) * tan;
+  const rampantAileM = (W2 / 2 + d) / cos;
   const nbNoues = compo.raccord === "T" ? 2 : 1;
 
-  // Aile franche ajoutée : deux_pans de longueur = saillie, rampant = rampant principal.
-  const surfaceAile = 2 * principal.rampantM * compo.secondaire.longueurM;
+  // Aile franche ajoutée : emprise W2 × saillie ⇒ surface développée = 2·rampantAile·saillie.
+  const surfaceAile = 2 * rampantAileM * compo.secondaire.longueurM;
   const surfaceComposeeM2 = principal.surfaceToitureM2 + surfaceAile;
 
   return {
     principal,
     longueurNoueM,
     nbNoues,
+    largeurAileM: W2,
+    hauteurAileM,
     surfaceComposeeM2,
-    surfaceExacte: true, // emprise/cos α : exact pour L et T (même emprise)
+    surfaceExacte: true, // emprise/cos α : exact (L, T, et largeurs différentes)
   };
 }
 
