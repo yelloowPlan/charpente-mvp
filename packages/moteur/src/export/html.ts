@@ -227,6 +227,7 @@ export function etudeVersHtml(etude: Etude, options: OptionsHtml = {}): string {
       ["Surface", `${nb(m.surfaceM2)} m²`],
       ["Faîtage", `${nb(m.mlFaitage, 2)} ml`],
       ...(m.mlAretiers > 0 ? [["Arêtiers", `${nb(m.mlAretiers, 2)} ml`]] : []),
+      ...(m.mlNoues > 0 ? [["Noues", `${nb(m.mlNoues, 2)} ml`]] : []),
       ["Égout", `${nb(m.mlEgout, 2)} ml`],
       ...(m.mlRives > 0 ? [["Rives", `${nb(m.mlRives, 2)} ml`]] : []),
       ...(m.nbTuiles > 0 ? [["Tuiles (estimé)", `~ ${nb(m.nbTuiles, 0)}`]] : []),

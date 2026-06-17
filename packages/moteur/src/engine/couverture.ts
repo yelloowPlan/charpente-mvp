@@ -1,5 +1,5 @@
 import type { ParametresProjet } from "../domain/types.ts";
-import { calculerGeometrie, type GeometrieToit } from "./geometrie.ts";
+import { calculerGeometrie, calculerGeometrieComposee, type GeometrieToit } from "./geometrie.ts";
 
 /**
  * Métré de couverture : surfaces et linéaires (faîtage, arêtiers, égout, rives)
@@ -10,6 +10,8 @@ export interface MetreCouverture {
   surfaceM2: number;
   mlFaitage: number;
   mlAretiers: number;
+  /** linéaire de noue(s) — 0 hors toiture composée */
+  mlNoues: number;
   mlEgout: number;
   mlRives: number;
   /** estimation du nombre de tuiles/ardoises (0 pour le bac acier) */
@@ -31,7 +33,7 @@ export function metreCouverture(p: ParametresProjet, geo?: GeometrieToit): Metre
   const d = p.batiment.debordRampantM;
   const typologie = p.toiture.typologie;
 
-  const mlFaitage = g.longueurFaitageM;
+  let mlFaitage = g.longueurFaitageM;
   const mlAretiers = typologie === "croupe" ? 4 * g.longueurAretierM : 0;
 
   let mlEgout = 0;
@@ -48,6 +50,18 @@ export function metreCouverture(p: ParametresProjet, geo?: GeometrieToit): Metre
     mlRives = 0;
   }
 
+  // Composition multi-volumes : noue(s) exacte(s) + linéaires de l'aile.
+  let mlNoues = 0;
+  const compo = p.toiture.composition;
+  if (compo) {
+    const gc = calculerGeometrieComposee(p);
+    const S = compo.secondaire.longueurM;
+    mlNoues = gc.nbNoues * gc.longueurNoueM;
+    mlFaitage += W / 2 + S; // faîtage de l'aile (croisement → pignon)
+    mlEgout += 2 * S; // 2 égouts d'aile (saillie)
+    mlRives += 2 * g.rampantM; // pignon libre de l'aile (2 rampants)
+  }
+
   const densite = DENSITE[p.toiture.couverture.type] ?? 0;
   const nbTuiles = Math.round(g.surfaceToitureM2 * densite);
 
@@ -55,6 +69,7 @@ export function metreCouverture(p: ParametresProjet, geo?: GeometrieToit): Metre
     surfaceM2: Math.round(g.surfaceToitureM2 * 100) / 100,
     mlFaitage: Math.round(mlFaitage * 100) / 100,
     mlAretiers: Math.round(mlAretiers * 100) / 100,
+    mlNoues: Math.round(mlNoues * 100) / 100,
     mlEgout: Math.round(mlEgout * 100) / 100,
     mlRives: Math.round(mlRives * 100) / 100,
     nbTuiles,

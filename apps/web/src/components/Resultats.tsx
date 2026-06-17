@@ -241,6 +241,7 @@ export function Resultats({
           <Carte titre="Surface" valeur={`${nb(couv.surfaceM2)} m²`} />
           <Carte titre="Faîtage" valeur={`${nb(couv.mlFaitage, 2)} ml`} />
           {couv.mlAretiers > 0 && <Carte titre="Arêtiers" valeur={`${nb(couv.mlAretiers, 2)} ml`} />}
+          {couv.mlNoues > 0 && <Carte titre="Noues" valeur={`${nb(couv.mlNoues, 2)} ml`} />}
           <Carte titre="Égout" valeur={`${nb(couv.mlEgout, 2)} ml`} />
           {couv.mlRives > 0 && <Carte titre="Rives" valeur={`${nb(couv.mlRives, 2)} ml`} />}
           {couv.nbTuiles > 0 && <Carte titre="Tuiles (est.)" valeur={`~ ${nb(couv.nbTuiles, 0)}`} />}

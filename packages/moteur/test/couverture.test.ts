@@ -37,4 +37,26 @@ describe("metreCouverture", () => {
       for (const v of Object.values(m)) assert.ok(Number.isFinite(v));
     }
   });
+
+  it("mono-volume : mlNoues nul", () => {
+    assert.equal(metreCouverture(projetParDefaut()).mlNoues, 0);
+  });
+
+  it("composé T : mlNoues = 2 × longueur de noue, faîtage augmenté", () => {
+    const base = projetParDefaut();
+    const W = base.batiment.largeurM;
+    const ref = metreCouverture(base);
+    const p = projetParDefaut({
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W, longueurM: 4, positionM: 5 } },
+      },
+    });
+    const m = metreCouverture(p);
+    const tan = Math.tan((base.toiture.penteDeg * Math.PI) / 180);
+    const noue = (W / 2) * Math.sqrt(2 + tan * tan);
+    assert.ok(Math.abs(m.mlNoues - 2 * noue) < 0.05);
+    assert.ok(m.mlFaitage > ref.mlFaitage);
+  });
 });
