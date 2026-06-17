@@ -278,8 +278,8 @@ export function genererNomenclatureComposee(
   const S = compo.secondaire.longueurM;
   const entraxe = c.entraxeChevronM;
   const pureau = p.toiture.couverture.pureauM;
-  const cos = Math.cos((p.toiture.penteDeg * Math.PI) / 180);
-  const R = (W2 / 2 + d) / cos; // rampant de l'aile (en W2)
+  const cos = Math.cos(((compo.secondaire.penteDeg ?? p.toiture.penteDeg) * Math.PI) / 180); // α2 (aile)
+  const R = (W2 / 2 + d) / cos; // rampant de l'aile (en W2, pente d'aile)
 
   // Retrait des chevrons communs du pan principal recoupés par la/les noue(s) :
   // dans l'emprise de l'aile (largeur W2), les chevrons du pan de jonction

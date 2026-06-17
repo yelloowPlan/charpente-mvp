@@ -56,6 +56,15 @@ function maisonAvecExtension(): ParametresProjet {
   return p;
 }
 
+function maisonExtensionBasse(): ParametresProjet {
+  const p = projetParDefaut();
+  p.batiment = { longueurM: 10, largeurM: 8, debordRampantM: 0.4, debordPignonM: 0.3 };
+  p.toiture.penteDeg = 45;
+  // Aile plus étroite ET moins pentue (28° < 45°) → faîtage d'aile bas qui pénètre.
+  p.toiture.composition = { raccord: "L", secondaire: { largeurM: 5, longueurM: 4, positionM: 7.5, penteDeg: 28 } };
+  return p;
+}
+
 export const PRESETS: Preset[] = [
   { id: "maison", nom: "Maison 2 pans", projet: maison2Pans() },
   { id: "abri", nom: "Abri / carport", projet: abriCarport() },
@@ -63,4 +72,5 @@ export const PRESETS: Preset[] = [
   { id: "croupe", nom: "Pavillon croupe", projet: pavillonCroupe() },
   { id: "maison_t", nom: "Maison en T (noues)", projet: maisonEnT() },
   { id: "maison_ext", nom: "Maison + extension étroite", projet: maisonAvecExtension() },
+  { id: "maison_ext_basse", nom: "Extension à pente douce", projet: maisonExtensionBasse() },
 ];

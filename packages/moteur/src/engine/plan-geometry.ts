@@ -76,12 +76,16 @@ export function segmentsPlan(p: ParametresProjet, geo?: GeometrieToit): SegmentP
     const S = compo.secondaire.longueurM;
     const half = W2 / 2;
     const deuxNoues = compo.raccord !== "L"; // L → 1 noue, T/croix → 2 par aile
+    // Lot C : pénétration dépend de la pente d'aile α2 (= principal si absent).
+    const tan1 = Math.tan((p.toiture.penteDeg * Math.PI) / 180);
+    const tan2 = Math.tan(((compo.secondaire.penteDeg ?? p.toiture.penteDeg) * Math.PI) / 180);
+    const dPen = Math.min((W2 / 2) * (tan2 / tan1), W / 2);
 
     // Dessine une aile sur un côté : cote = +1 (sort par y=W, arrière), −1 (par y=0, avant).
     const ajouterAile = (cote: 1 | -1) => {
       const yJ = cote === 1 ? W : 0; // arête de jonction (égout principal)
       const yEnd = yJ + cote * S; // pignon de l'aile
-      const yPen = yJ - cote * (W2 / 2); // pénétration sur le pan principal
+      const yPen = yJ - cote * dPen; // pénétration sur le pan principal
       s.push({ x1: xc - half, y1: yJ, x2: xc - half, y2: yEnd, type: "contour" });
       s.push({ x1: xc - half, y1: yEnd, x2: xc + half, y2: yEnd, type: "contour" });
       s.push({ x1: xc + half, y1: yEnd, x2: xc + half, y2: yJ, type: "contour" });

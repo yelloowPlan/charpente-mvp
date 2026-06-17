@@ -214,10 +214,16 @@ export function ParamForm({ projet, onChange }: Props) {
                 step={0.5}
                 onChange={(v) => majAile({ positionM: v })}
               />
+              <Nombre
+                label="Pente de l'aile (°)"
+                value={compo.secondaire.penteDeg ?? projet.toiture.penteDeg}
+                step={1}
+                onChange={(v) => majAile({ penteDeg: v })}
+              />
               <p className="aide">
-                Aile de même pente, largeur ≤ portée principale (
-                {projet.batiment.largeurM.toLocaleString("fr-FR")} m). Plus étroite, son faîtage
-                pénètre le pan principal. Métré du raccord estimé (conservateur).
+                Largeur ≤ portée principale ({projet.batiment.largeurM.toLocaleString("fr-FR")} m).
+                Plus étroite ou moins pentue, le faîtage d'aile pénètre le pan principal. Métré du
+                raccord estimé (conservateur).
               </p>
             </>
           )}

@@ -39,6 +39,8 @@ export interface VolumeSecondaire {
   longueurM: number;
   /** position du faîtage secondaire le long du faîtage principal, depuis le pignon gauche (m) */
   positionM: number;
+  /** pente de l'aile en degrés (Lot C) — absent ⇒ même pente que le principal */
+  penteDeg?: number;
 }
 
 /** Composition multi-volumes déclarée (RFC 0001). Absent ⇒ toiture mono-volume. */

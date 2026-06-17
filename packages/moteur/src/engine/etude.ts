@@ -122,6 +122,23 @@ export function validerProjet(p: ParametresProjet): Alerte[] {
           `${p.batiment.largeurM} m. Pour ce cas, désigner le plus grand volume comme principal.`,
       });
     }
+    // Lot C : pente d'aile
+    if (sec.penteDeg !== undefined && !(sec.penteDeg > 5 && sec.penteDeg < 85)) {
+      bloquant(`Toiture composée : pente d'aile hors bornes (${sec.penteDeg}°). Attendu : 5° < pente < 85°.`);
+    } else if (sec.penteDeg !== undefined) {
+      const W2 = Math.min(sec.largeurM, p.batiment.largeurM);
+      const h2 = (W2 / 2) * Math.tan((sec.penteDeg * Math.PI) / 180);
+      const h1 = (p.batiment.largeurM / 2) * Math.tan((p.toiture.penteDeg * Math.PI) / 180);
+      if (h2 > h1 + 1e-6) {
+        a.push({
+          niveau: "attention",
+          message:
+            `Toiture composée : aile plus haute que le principal (faîtage ${h2.toFixed(2)} m > ` +
+            `${h1.toFixed(2)} m) — non supporté. Pénétration plafonnée au faîtage principal ` +
+            "(géométrie approchée). Réduire la pente ou la largeur de l'aile.",
+        });
+      }
+    }
     if (sec.positionM < 0 || sec.positionM > Lp) {
       a.push({
         niveau: "attention",

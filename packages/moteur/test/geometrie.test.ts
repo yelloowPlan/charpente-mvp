@@ -88,6 +88,48 @@ describe("calculerGeometrieComposee — toitures composées (RFC 0001, Lot A)", 
     assert.ok(gc.longueurNoueM < gcPlein.longueurNoueM);
   });
 
+  it("Lot C — pente d'aile = pente principale ⇒ géométrie identique (réduction)", () => {
+    const W = base.batiment.largeurM;
+    const sansPente = calculerGeometrieComposee({
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: 5, longueurM: 4, positionM: 5 } },
+      },
+    });
+    const memePente = calculerGeometrieComposee({
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: {
+          raccord: "T",
+          secondaire: { largeurM: 5, longueurM: 4, positionM: 5, penteDeg: base.toiture.penteDeg },
+        },
+      },
+    });
+    closeTo(memePente.longueurNoueM, sansPente.longueurNoueM, 9);
+    closeTo(memePente.penetrationM, sansPente.penetrationM, 9);
+    closeTo(memePente.surfaceComposeeM2, sansPente.surfaceComposeeM2, 6);
+    void W;
+  });
+
+  it("Lot C — aile plus plate (α2 < α1) : faîtage d'aile plus bas, pénétration moindre", () => {
+    const W2 = 6;
+    const mk = (penteDeg?: number) =>
+      calculerGeometrieComposee({
+        ...base,
+        toiture: {
+          ...base.toiture,
+          composition: { raccord: "T", secondaire: { largeurM: W2, longueurM: 4, positionM: 5, penteDeg } },
+        },
+      });
+    const plate = mk(25); // < 45 principal
+    const raide = mk(); // = principal (45)
+    assert.ok(plate.hauteurAileM < raide.hauteurAileM); // h2 plus bas
+    assert.ok(plate.penetrationM < raide.penetrationM); // pénètre moins profond
+    assert.ok(Number.isFinite(plate.longueurNoueM) && plate.longueurNoueM > 0);
+  });
+
   it("Lot B — aile plus large que le principal (W2 > W1) : plafonnée à W1, géométrie saine", () => {
     const W1 = base.batiment.largeurM;
     const p: ParametresProjet = {

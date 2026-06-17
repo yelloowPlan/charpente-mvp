@@ -56,10 +56,14 @@ export function metreCouverture(p: ParametresProjet, geo?: GeometrieToit): Metre
   if (compo) {
     const gc = calculerGeometrieComposee(p);
     const S = compo.secondaire.longueurM;
+    const nbAiles = compo.raccord === "croix" ? 2 : 1;
+    const cos2 = Math.cos(((compo.secondaire.penteDeg ?? p.toiture.penteDeg) * Math.PI) / 180);
+    const rampantAile = gc.largeurAileM / 2 / cos2; // rampant d'aile (sans débord, α2)
     mlNoues = gc.nbNoues * gc.longueurNoueM;
-    mlFaitage += W / 2 + S; // faîtage de l'aile (croisement → pignon)
-    mlEgout += 2 * S; // 2 égouts d'aile (saillie)
-    mlRives += 2 * g.rampantM; // pignon libre de l'aile (2 rampants)
+    // faîtage d'aile : du point de pénétration au pignon = saillie + pénétration
+    mlFaitage += nbAiles * (S + gc.penetrationM);
+    mlEgout += nbAiles * 2 * S; // 2 égouts par aile (saillie)
+    mlRives += nbAiles * 2 * rampantAile; // pignon libre de l'aile (2 rampants)
   }
 
   const densite = DENSITE[p.toiture.couverture.type] ?? 0;

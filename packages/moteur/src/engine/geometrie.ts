@@ -40,8 +40,10 @@ export interface GeometrieComposee {
   nbNoues: number;
   /** largeur (portée) de l'aile (m) — W2 ; 0 si mono-volume */
   largeurAileM: number;
-  /** hauteur de faîtage de l'aile au-dessus de sa sablière (m) = (W2/2)·tanα */
+  /** hauteur de faîtage de l'aile au-dessus de sa sablière (m) = (W2/2)·tanα2 */
   hauteurAileM: number;
+  /** profondeur de pénétration du faîtage d'aile dans le pan principal (m, projection plan) */
+  penetrationM: number;
   /** surface développée totale, raccord inclus (m²) */
   surfaceComposeeM2: number;
   /**
@@ -75,28 +77,36 @@ export function calculerGeometrieComposee(p: ParametresProjet): GeometrieCompose
       nbNoues: 0,
       largeurAileM: 0,
       hauteurAileM: 0,
+      penetrationM: 0,
       surfaceComposeeM2: principal.surfaceToitureM2,
       surfaceExacte: true,
     };
   }
 
-  // Lot B : la largeur de l'aile W2 peut différer de la portée principale W1.
-  // Tout se généralise (noue, hauteur, pénétration) et redevient le Lot A si W2 = W1.
-  // W2 > W1 (aile plus large) n'est pas supporté (ce serait au principal de pénétrer
-  // l'aile) → plafonné à W1 (géométrie saine) ; la validation guide l'utilisateur.
-  const W2 = Math.min(compo.secondaire.largeurM, p.batiment.largeurM);
+  // Lot B : la largeur de l'aile W2 peut différer de la portée principale W1
+  // (W2 > W1 plafonné à W1, la validation guide). Lot C : la pente d'aile α2 peut
+  // différer de α1 → la noue reste droite (intersection de 2 plans) mais sa pénétration
+  // et sa hauteur changent. Tout redevient le Lot A/B si α2 = α1 et W2 = W1.
+  const W1 = p.batiment.largeurM;
+  const W2 = Math.min(compo.secondaire.largeurM, W1);
   const d = p.batiment.debordRampantM;
-  const alpha = degVersRad(p.toiture.penteDeg);
-  const tan = Math.tan(alpha);
-  const cos = Math.cos(alpha);
-  const longueurNoueM = (W2 / 2) * Math.sqrt(2 + tan * tan);
-  const hauteurAileM = (W2 / 2) * tan;
-  const rampantAileM = (W2 / 2 + d) / cos;
+  const alpha1 = degVersRad(p.toiture.penteDeg);
+  const alpha2 = degVersRad(compo.secondaire.penteDeg ?? p.toiture.penteDeg);
+  const tan1 = Math.tan(alpha1);
+  const tan2 = Math.tan(alpha2);
+  const cos2 = Math.cos(alpha2);
+
+  const hauteurAileM = (W2 / 2) * tan2; // h2
+  // Profondeur de pénétration (plan) dans le pan principal, plafonnée au faîtage (W1/2)
+  // si l'aile est plus haute que le principal (cas non supporté → géométrie saine).
+  const penetrationM = Math.min((W2 / 2) * (tan2 / tan1), W1 / 2);
+  const longueurNoueM = Math.sqrt((W2 / 2) ** 2 + penetrationM ** 2 + hauteurAileM ** 2);
+  const rampantAileM = (W2 / 2 + d) / cos2;
   // croix = 2 ailes opposées (4 noues) ; T = 2 noues ; L = 1.
   const nbAiles = compo.raccord === "croix" ? 2 : 1;
   const nbNoues = compo.raccord === "croix" ? 4 : compo.raccord === "T" ? 2 : 1;
 
-  // Chaque aile ajoute son emprise W2 × saillie ⇒ 2·rampantAile·saillie de surface développée.
+  // Chaque aile ajoute son emprise W2 × saillie au pas de l'aile ⇒ 2·rampantAile·saillie.
   const surfaceAile = nbAiles * 2 * rampantAileM * compo.secondaire.longueurM;
   const surfaceComposeeM2 = principal.surfaceToitureM2 + surfaceAile;
 
@@ -106,8 +116,9 @@ export function calculerGeometrieComposee(p: ParametresProjet): GeometrieCompose
     nbNoues,
     largeurAileM: W2,
     hauteurAileM,
+    penetrationM,
     surfaceComposeeM2,
-    surfaceExacte: true, // emprise/cos α : exact (L, T, et largeurs différentes)
+    surfaceExacte: true, // surface par volume (chaque pente son cos) — exacte
   };
 }
 
