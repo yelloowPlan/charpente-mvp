@@ -148,15 +148,17 @@ A1 types + `calculerGeometrieComposee` (+ tests noue/surface) · A2 nomenclature
 
 | Incrément | Livré | Notes |
 |---|---|---|
-| A1 géométrie | ✅ | `calculerGeometrieComposee` : noue exacte `(W/2)·√(2+tan²α)`, surface T en forme close ; L marqué `surfaceExacte:false` |
-| A2 nomenclature | ✅ | `genererNomenclatureComposee` : aile + chevron(s) de noue + empannons ; additif/conservateur, `estimation:true` |
+| A1 géométrie | ✅ | `calculerGeometrieComposee` : noue exacte `(W/2)·√(2+tan²α)`, **surface exacte L et T** (emprise/cos α, même emprise ⇒ `surfaceExacte:true`) |
+| A2 nomenclature | ✅ | `genererNomenclatureComposee` : aile + chevron(s) de noue + empannons + **retrait des communs recoupés** (anti-sous-métré) ; `estimation:true` (quantités discrètes) |
 | A3 plan 2D/DXF | ✅ | segments aile + noues, repères N1.., calque DXF `NOUE`, bbox auto |
 | A4 3D | ✅ | `genererOssature/Lattage/CouvertureComposee3D`, rôle `noue` |
 | A5 UI + câblage | ✅ | `etudier` branché (surface composée au devis), éditeur « Volume secondaire », preset « Maison en T », sous-titre dynamique |
 
 Durcissements livrés après coup : `mlNoues` + linéaires d'aile au métré couverture · validation des entrées de composition (saillie > 0, largeurs égales, position dans le bâtiment) + **dégradation gracieuse** hors deux_pans (aile ignorée, purge UI au changement de typologie) · chevrons d'aile sur le plan 2D.
 
-Reste Lot A possible (non bloquant, NON fait — choix assumés) : **retrait fin des chevrons recoupés** (passer d'estimé à exact — faible valeur, le sur-métré conservateur est sûr) ; **surface du L exacte** (exigerait de modéliser l'arêtier extérieur du raccord en L — laissé `surfaceExacte:false` plutôt que fausse précision).
+**Lot A terminé.** Les deux derniers points ont été traités :
+- **Surface du L** : prouvée exacte via emprise/cos α (L et T ont la même emprise) ⇒ `surfaceExacte:true`. La surface développée d'une toiture de pente uniforme = emprise au sol / cos α ; l'aile ajoute la même bande `W·S` quel que soit le raccord.
+- **Retrait des chevrons recoupés** : les communs du pan de jonction dans l'emprise de l'aile sont retirés (⌊W/entraxe⌋−1, moitié pour un L) puis remplacés par les empannons. Invariant **« métré composé ≥ principal »** garanti (test) — moins sur-évalué qu'avant, jamais de sous-commande. Reste `estimation:true` car les quantités de chevrons sont discrètes (l'exactitude au chevron près est convention-dépendante).
 
 ## 9. Hors périmètre (explicite)
 
