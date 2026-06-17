@@ -1,6 +1,6 @@
 # RFC 0001 — Toitures composées multi-volumes (noues)
 
-- **Statut** : **Lot A terminé** · **Lot B en cours** (largeurs différentes) · Lot C à venir
+- **Statut** : **Lot A terminé** · **Lot B (largeurs différentes) terminé** · reste B (croix, W2>W1) + Lot C
 - **Date** : 2026-06-17
 - **Périmètre** : moteur (`packages/moteur`) + app (`apps/web`)
 - **Pré-requis lus** : `geometrie.ts`, `nomenclature.ts` (`genererCroupe`), `ossature.ts`, `plan-geometry.ts`, `domain/types.ts`
@@ -173,7 +173,7 @@ Cas réel le plus fréquent : **extension plus étroite** que le corps principal
 
 **Périmètre Lot B (cet incrément)** : `W2 ≤ W1` uniquement (aile même largeur ou plus étroite). `W2 > W1` (aile plus large → c'est le principal qui pénètre) et la **croix (+, 4 noues)** restent pour plus tard. Pentes différentes / lucarnes = Lot C.
 
-Incréments : **B1** géométrie (W2, h2, pénétration) · **B2** nomenclature (dimensions d'aile en W2) · **B3** plan 2D/DXF (faîtage pénétrant) · **B4** 3D (pénétration) · **B5** UI (déverrouiller la largeur d'aille + validation `W2 ≤ W1`).
+Incréments **tous livrés** : **B1** géométrie (W2, h2, pénétration `(W1−W2)/2`) ✅ · **B2** nomenclature (dimensions d'aile en W2) ✅ · **B3** plan 2D/DXF (faîtage pénétrant) ✅ · **B4** 3D (pénétration, apex d'aile abaissé) ✅ · **B5** UI (largeur d'aile éditable + validation `W2 ≤ W1` + preset « Maison + extension étroite ») ✅. Tout réduit exactement au Lot A si `W2 = W1` (tests Lot A inchangés, golden verrouillé). **258 tests moteur + 25 web.**
 
 ## 9. Hors périmètre (explicite)
 
