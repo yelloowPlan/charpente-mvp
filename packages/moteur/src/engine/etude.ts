@@ -118,8 +118,8 @@ export function validerProjet(p: ParametresProjet): Alerte[] {
         niveau: "attention",
         message:
           `Toiture composée : aile (${sec.largeurM} m) plus large que la portée principale ` +
-          `(${p.batiment.largeurM} m) — non supporté (le principal pénétrerait l'aile). ` +
-          "Résultat dégradé : prévoir une aile de largeur ≤ portée principale.",
+          `(${p.batiment.largeurM} m) — non supporté. Largeur d'aile plafonnée à ` +
+          `${p.batiment.largeurM} m. Pour ce cas, désigner le plus grand volume comme principal.`,
       });
     }
     if (sec.positionM < 0 || sec.positionM > Lp) {

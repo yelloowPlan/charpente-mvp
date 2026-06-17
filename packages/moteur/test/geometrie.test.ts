@@ -88,6 +88,20 @@ describe("calculerGeometrieComposee — toitures composées (RFC 0001, Lot A)", 
     assert.ok(gc.longueurNoueM < gcPlein.longueurNoueM);
   });
 
+  it("Lot B — aile plus large que le principal (W2 > W1) : plafonnée à W1, géométrie saine", () => {
+    const W1 = base.batiment.largeurM;
+    const p: ParametresProjet = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W1 + 4, longueurM: 4, positionM: 5 } },
+      },
+    };
+    const gc = calculerGeometrieComposee(p);
+    closeTo(gc.largeurAileM, W1, 9); // plafonné
+    assert.ok(Number.isFinite(gc.surfaceComposeeM2) && Number.isFinite(gc.longueurNoueM));
+  });
+
   it("croix → 4 noues, surface = principal + 4·rampantAile·saillie (2 ailes)", () => {
     const W = base.batiment.largeurM;
     const saillie = 4;

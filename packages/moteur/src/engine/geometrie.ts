@@ -82,7 +82,9 @@ export function calculerGeometrieComposee(p: ParametresProjet): GeometrieCompose
 
   // Lot B : la largeur de l'aile W2 peut différer de la portée principale W1.
   // Tout se généralise (noue, hauteur, pénétration) et redevient le Lot A si W2 = W1.
-  const W2 = compo.secondaire.largeurM;
+  // W2 > W1 (aile plus large) n'est pas supporté (ce serait au principal de pénétrer
+  // l'aile) → plafonné à W1 (géométrie saine) ; la validation guide l'utilisateur.
+  const W2 = Math.min(compo.secondaire.largeurM, p.batiment.largeurM);
   const d = p.batiment.debordRampantM;
   const alpha = degVersRad(p.toiture.penteDeg);
   const tan = Math.tan(alpha);

@@ -71,7 +71,7 @@ export function segmentsPlan(p: ParametresProjet, geo?: GeometrieToit): SegmentP
   // d'aile pénètre le pan principal à la profondeur W2/2. croix = 2 ailes opposées.
   const compo = p.toiture.composition;
   if (compo) {
-    const W2 = compo.secondaire.largeurM;
+    const W2 = Math.min(compo.secondaire.largeurM, W); // plafonné à la portée principale
     const xc = compo.secondaire.positionM;
     const S = compo.secondaire.longueurM;
     const half = W2 / 2;

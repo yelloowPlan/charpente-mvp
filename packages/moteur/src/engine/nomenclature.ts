@@ -273,7 +273,7 @@ export function genererNomenclatureComposee(
   if (!compo) return principal;
 
   const c = p.charpente;
-  const W2 = compo.secondaire.largeurM; // largeur de l'aile (Lot B : ≤ portée principale)
+  const W2 = g.largeurAileM; // largeur de l'aile (Lot B, plafonnée à la portée principale)
   const d = p.batiment.debordRampantM;
   const S = compo.secondaire.longueurM;
   const entraxe = c.entraxeChevronM;
