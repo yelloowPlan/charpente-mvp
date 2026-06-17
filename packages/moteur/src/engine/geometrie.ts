@@ -28,6 +28,71 @@ export interface GeometrieToit {
 const degVersRad = (deg: number): number => (deg * Math.PI) / 180;
 
 /**
+ * Géométrie d'une toiture composée multi-volumes (RFC 0001, Lot A).
+ * Volume principal inchangé + extras de raccord (noue).
+ */
+export interface GeometrieComposee {
+  /** géométrie du volume principal (identique au mono-volume) */
+  principal: GeometrieToit;
+  /** longueur vraie d'une noue (m) — 0 si pas de composition */
+  longueurNoueM: number;
+  /** nombre de noues (L → 1, T → 2 ; 0 si mono-volume) */
+  nbNoues: number;
+  /** surface développée totale, raccord inclus (m²) */
+  surfaceComposeeM2: number;
+  /**
+   * true si `surfaceComposeeM2` est en forme close exacte (cas T régulier).
+   * false ⇒ approximation additive (L : recouvrement de jonction non encore dérivé).
+   */
+  surfaceExacte: boolean;
+}
+
+/**
+ * Géométrie composée (RFC 0001, Lot A — volumes de même largeur et même pente).
+ *
+ * Noue régulière : par symétrie avec l'arêtier de croupe, sa longueur vraie vaut
+ * `(W/2)·√(2+tan²α)` (même formule que `longueurAretierM`).
+ *
+ * Surface (cas T régulier, forme close prouvée) : l'aile greffée ajoute sa partie
+ * franche `2·rampant·saillie` ; au droit du raccord, la « mortaise » retirée du pan
+ * principal est exactement comblée par les deux versants de l'aile (bilan nul).
+ * ⇒ `surface = surfacePrincipal + 2·rampant·saillie`.
+ *
+ * Sans `composition`, renvoie la géométrie mono-volume telle quelle (rétro-compat).
+ */
+export function calculerGeometrieComposee(p: ParametresProjet): GeometrieComposee {
+  const principal = calculerGeometrie(p);
+  const compo = p.toiture.composition;
+  if (!compo) {
+    return {
+      principal,
+      longueurNoueM: 0,
+      nbNoues: 0,
+      surfaceComposeeM2: principal.surfaceToitureM2,
+      surfaceExacte: true,
+    };
+  }
+
+  const W = p.batiment.largeurM;
+  const alpha = degVersRad(p.toiture.penteDeg);
+  const tan = Math.tan(alpha);
+  const longueurNoueM = (W / 2) * Math.sqrt(2 + tan * tan);
+  const nbNoues = compo.raccord === "T" ? 2 : 1;
+
+  // Aile franche ajoutée : deux_pans de longueur = saillie, rampant = rampant principal.
+  const surfaceAile = 2 * principal.rampantM * compo.secondaire.longueurM;
+  const surfaceComposeeM2 = principal.surfaceToitureM2 + surfaceAile;
+
+  return {
+    principal,
+    longueurNoueM,
+    nbNoues,
+    surfaceComposeeM2,
+    surfaceExacte: compo.raccord === "T",
+  };
+}
+
+/**
  * Géométrie selon la typologie (α = pente) :
  *  - deux pans : rampant=(W/2+d)/cosα, h=(W/2)tanα, surface=2·rampant·Lp
  *  - appentis  : rampant=(W+d)/cosα,  h=W·tanα,     surface=rampant·Lp

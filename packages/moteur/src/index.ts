@@ -1,7 +1,12 @@
 // API publique du moteur paramétrique de charpente (MVP).
 export * from "./domain/types.ts";
 export { projetParDefaut } from "./domain/defaults.ts";
-export { calculerGeometrie, type GeometrieToit } from "./engine/geometrie.ts";
+export {
+  calculerGeometrie,
+  calculerGeometrieComposee,
+  type GeometrieToit,
+  type GeometrieComposee,
+} from "./engine/geometrie.ts";
 export {
   aireSectionM2,
   momentQuadratiqueMm4,

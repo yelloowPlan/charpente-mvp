@@ -1,8 +1,74 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { projetParDefaut } from "../src/domain/defaults.ts";
-import { calculerGeometrie } from "../src/engine/geometrie.ts";
+import { calculerGeometrie, calculerGeometrieComposee } from "../src/engine/geometrie.ts";
 import { closeTo } from "./helpers.ts";
+import type { ParametresProjet } from "../src/domain/types.ts";
+
+describe("calculerGeometrieComposee — toitures composées (RFC 0001, Lot A)", () => {
+  const base = projetParDefaut();
+
+  it("sans composition : identique au mono-volume (rétro-compat)", () => {
+    const gc = calculerGeometrieComposee(base);
+    assert.equal(gc.nbNoues, 0);
+    assert.equal(gc.longueurNoueM, 0);
+    assert.equal(gc.surfaceComposeeM2, calculerGeometrie(base).surfaceToitureM2);
+    assert.equal(gc.surfaceExacte, true);
+  });
+
+  it("noue régulière : longueur == longueur d'arêtier (W/2)·√(2+tan²α)", () => {
+    const W = base.batiment.largeurM;
+    const tan = Math.tan((base.toiture.penteDeg * Math.PI) / 180);
+    const attendu = (W / 2) * Math.sqrt(2 + tan * tan);
+    const compoT: ParametresProjet = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W, longueurM: 4, positionM: 5 } },
+      },
+    };
+    const gc = calculerGeometrieComposee(compoT);
+    closeTo(gc.longueurNoueM, attendu, 9);
+
+    // Égalité noue ↔ arêtier vérifiée sur une croupe de même largeur (où l'arêtier existe).
+    const croupe = calculerGeometrie({
+      ...base,
+      toiture: { ...base.toiture, typologie: "croupe" },
+    });
+    closeTo(gc.longueurNoueM, croupe.longueurAretierM, 9);
+  });
+
+  it("T → 2 noues, surface exacte = principal + 2·rampant·saillie", () => {
+    const W = base.batiment.largeurM;
+    const saillie = 4;
+    const p: ParametresProjet = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W, longueurM: saillie, positionM: 5 } },
+      },
+    };
+    const g = calculerGeometrie(base);
+    const gc = calculerGeometrieComposee(p);
+    assert.equal(gc.nbNoues, 2);
+    assert.equal(gc.surfaceExacte, true);
+    closeTo(gc.surfaceComposeeM2, g.surfaceToitureM2 + 2 * g.rampantM * saillie, 6);
+  });
+
+  it("L → 1 noue, surface marquée approchée", () => {
+    const W = base.batiment.largeurM;
+    const p: ParametresProjet = {
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "L", secondaire: { largeurM: W, longueurM: 3, positionM: 0 } },
+      },
+    };
+    const gc = calculerGeometrieComposee(p);
+    assert.equal(gc.nbNoues, 1);
+    assert.equal(gc.surfaceExacte, false);
+  });
+});
 
 describe("calculerGeometrie — exemple de référence (10×8 m, pente 45°)", () => {
   const g = calculerGeometrie(projetParDefaut());

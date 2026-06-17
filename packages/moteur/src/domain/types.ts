@@ -24,6 +24,29 @@ export interface Section {
 /** Typologies de toiture supportées. */
 export type TypeToiture = "deux_pans" | "appentis" | "croupe";
 
+/** Type de raccord d'un volume secondaire (RFC 0001). L → 1 noue, T → 2 noues. */
+export type TypeRaccord = "L" | "T";
+
+/**
+ * Volume secondaire greffé perpendiculairement au volume principal (RFC 0001, Lot A).
+ * Lot A : même largeur (portée) et même pente que le principal → faîtages à même
+ * hauteur, noues régulières à 45°.
+ */
+export interface VolumeSecondaire {
+  /** largeur (portée) du volume greffé — Lot A : doit égaler la largeur principale */
+  largeurM: number;
+  /** saillie : longueur du volume hors du corps principal (m) */
+  longueurM: number;
+  /** position du faîtage secondaire le long du faîtage principal, depuis le pignon gauche (m) */
+  positionM: number;
+}
+
+/** Composition multi-volumes déclarée (RFC 0001). Absent ⇒ toiture mono-volume. */
+export interface Composition {
+  raccord: TypeRaccord;
+  secondaire: VolumeSecondaire;
+}
+
 /** Types de charpente. MVP : `trad_pannes` uniquement. */
 export type TypeCharpente = "trad_pannes" | "fermette";
 
@@ -116,7 +139,13 @@ export interface OptionsDebit {
 
 export interface ParametresProjet {
   batiment: ParametresBatiment;
-  toiture: { typologie: TypeToiture; penteDeg: number; couverture: Couverture };
+  toiture: {
+    typologie: TypeToiture;
+    penteDeg: number;
+    couverture: Couverture;
+    /** composition multi-volumes (RFC 0001) — absent ⇒ toiture mono-volume */
+    composition?: Composition;
+  };
   charpente: ParametresCharpente;
   charges: Charges;
   essence: Essence;
