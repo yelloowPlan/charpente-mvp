@@ -25,4 +25,17 @@ describe("planDxf", () => {
     const p = projetParDefaut({ ...base, toiture: { ...base.toiture, typologie: "croupe" } });
     assert.ok(planDxf(p).includes("ARETIER"));
   });
+
+  it("composé : contient le calque NOUE", () => {
+    const base = projetParDefaut();
+    const W = base.batiment.largeurM;
+    const p = projetParDefaut({
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W, longueurM: 4, positionM: 5 } },
+      },
+    });
+    assert.ok(planDxf(p).includes("NOUE"));
+  });
 });

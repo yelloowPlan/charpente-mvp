@@ -13,6 +13,7 @@ const CALQUE: Record<TypeSegment, string> = {
   mur_haut: "MUR_HAUT",
   ferme: "FERME",
   aretier: "ARETIER",
+  noue: "NOUE",
   chevron: "CHEVRON",
 };
 

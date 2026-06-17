@@ -18,6 +18,7 @@ const STYLE: Record<TypeSegment, { couleur: string; largeur: number; dash?: stri
   mur_haut: { couleur: "#9a6533", largeur: 3 },
   ferme: { couleur: "#8a5a2b", largeur: 2.5 },
   aretier: { couleur: "#8a5a2b", largeur: 1.5, dash: "5 3" },
+  noue: { couleur: "#2f6f8f", largeur: 1.8, dash: "5 3" },
   chevron: { couleur: "#cda571", largeur: 1 },
 };
 
@@ -27,16 +28,28 @@ export function planMasseSvg(p: ParametresProjet, geo?: GeometrieToit): string {
   const W = p.batiment.largeurM;
   const Lp = g.longueurPanM;
 
-  const echelle = Math.min((VW - 2 * MARGE) / Lp, (VH - 2 * MARGE) / W);
-  const ox = (VW - Lp * echelle) / 2;
-  const oy = (VH - W * echelle) / 2;
+  const segs = segmentsPlan(p, g);
+
+  // Boîte englobante calculée depuis les segments (robuste aux volumes composés
+  // qui débordent de [0,Lp]×[0,W]). En mono-volume, bornes identiques à avant.
+  const xs = segs.flatMap((s) => [s.x1, s.x2]);
+  const ys = segs.flatMap((s) => [s.y1, s.y2]);
+  const minX = Math.min(0, ...xs);
+  const maxX = Math.max(Lp, ...xs);
+  const minY = Math.min(0, ...ys);
+  const maxY = Math.max(W, ...ys);
+  const spanX = maxX - minX || 1;
+  const spanY = maxY - minY || 1;
+
+  const echelle = Math.min((VW - 2 * MARGE) / spanX, (VH - 2 * MARGE) / spanY);
+  const ox = (VW - spanX * echelle) / 2 - minX * echelle;
+  const oy = (VH - spanY * echelle) / 2 - minY * echelle;
   const X = (x: number): number => ox + x * echelle;
   const Y = (y: number): number => oy + y * echelle;
 
-  // Fond du contour (premier segment = côté bas) — rectangle de remplissage
+  // Fond du contour principal — rectangle de remplissage
   const fond = `<rect x="${f(X(0))}" y="${f(Y(0))}" width="${f(Lp * echelle)}" height="${f(W * echelle)}" fill="#f8fafc"/>`;
 
-  const segs = segmentsPlan(p, g);
   const lignes = segs
     .map((s) => {
       const st = STYLE[s.type];
@@ -45,20 +58,22 @@ export function planMasseSvg(p: ParametresProjet, geo?: GeometrieToit): string {
     })
     .join("");
 
-  // Repérage pour la pose : fermes F1.. et arêtiers A1..
+  // Repérage pour la pose : fermes F1.., arêtiers A1.., noues N1..
   let nF = 0;
   let nA = 0;
+  let nN = 0;
   const reperes = segs
     .map((s) => {
       if (s.type === "ferme") {
         nF += 1;
         return `<text x="${f(X(s.x1))}" y="${f(Y(0) - 5)}" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a2b">F${nF}</text>`;
       }
-      if (s.type === "aretier") {
-        nA += 1;
+      if (s.type === "aretier" || s.type === "noue") {
         const mx = (s.x1 + s.x2) / 2;
         const my = (s.y1 + s.y2) / 2;
-        return `<text x="${f(X(mx))}" y="${f(Y(my))}" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a2b">A${nA}</text>`;
+        const label = s.type === "noue" ? `N${(nN += 1)}` : `A${(nA += 1)}`;
+        const fill = s.type === "noue" ? "#2f6f8f" : "#8a5a2b";
+        return `<text x="${f(X(mx))}" y="${f(Y(my))}" text-anchor="middle" font-size="10" font-weight="600" fill="${fill}">${label}</text>`;
       }
       return "";
     })

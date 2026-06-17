@@ -32,4 +32,34 @@ describe("planMasseSvg", () => {
     const svg = planMasseSvg(projetParDefaut());
     assert.ok(svg.includes(">F1<"));
   });
+
+  it("composé T : trace 2 noues + repères N1/N2, sans NaN", () => {
+    const base = projetParDefaut();
+    const W = base.batiment.largeurM;
+    const p = projetParDefaut({
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W, longueurM: 4, positionM: 5 } },
+      },
+    });
+    const svg = planMasseSvg(p);
+    assert.ok(svg.startsWith("<svg"));
+    assert.ok(svg.includes(">N1<") && svg.includes(">N2<"));
+    assert.ok(!svg.includes("NaN") && !svg.includes("Infinity"));
+  });
+
+  it("composé L : une seule noue (N1, pas de N2)", () => {
+    const base = projetParDefaut();
+    const W = base.batiment.largeurM;
+    const p = projetParDefaut({
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "L", secondaire: { largeurM: W, longueurM: 3, positionM: 4 } },
+      },
+    });
+    const svg = planMasseSvg(p);
+    assert.ok(svg.includes(">N1<") && !svg.includes(">N2<"));
+  });
 });
