@@ -21,7 +21,7 @@ YelloowPlan a **exactement** les rails nécessaires (rien à inventer) :
 |---|---|---|
 | `ModuleId` (`packages/verticals/src/types.ts`) | énumère les modules optionnels | `'charpente'` |
 | `ADDONS` (`packages/billing/src/addons.ts`) | option payante → `feature_flags.enabled` via webhook Stripe | 1 entrée `key:'charpente'`, `moduleKey:'charpente'` |
-| `VerticalPack.modulesEnabled` | modules proposés par métier | proposer `charpente` sur `btp`, `plomberie`, `electricite`, `climatisation`, `maintenance`, `multiservices`, `sav` (et/ou un nouveau pack `couverture`) |
+| `VerticalPack.modulesEnabled` | modules proposés par métier | proposer `charpente` sur **`btp`** (métier-hôte : vocab chantier/compagnon/maître d'ouvrage) **+ `multiservices`** ; V2 = pack dédié `charpente` |
 | `getEntitlements` / `feature_flags` | résout l'accès module | inchangé — l'add-on payé débloque `charpente` |
 | `apps/web/src/app/[slug]/<module>/` | 1 dossier = 1 module gated | nouveau dossier `[slug]/charpente/` |
 
@@ -88,9 +88,16 @@ Dans `packages/billing/src/addons.ts` :
   moduleKey: 'charpente',
   priceCents: 8900, // 89 €/mois
   stripePriceEnvVar: 'STRIPE_PRICE_ADDON_CHARPENTE',
-  applicableVerticals: ['btp', 'plomberie', 'electricite', 'climatisation', 'maintenance', 'multiservices', 'sav'],
+  // Métier-hôte : btp (charpentiers/couvreurs/constructeurs bois y sont déjà tenants).
+  // multiservices = touche-à-tout du bâtiment. PAS plomberie/électricité (ne posent pas de charpente).
+  applicableVerticals: ['btp', 'multiservices'],
 }
 ```
+
+### Métier-hôte vs pack dédié (décision de positionnement)
+
+- **V1 — add-on sur `btp`** (retenu) : zéro nouveau pack, les entreprises de charpente sont déjà des tenants `btp` (vocabulaire chantier/compagnon/maître d'ouvrage adapté). Opt-in : seuls ceux qui font de la charpente paient. **Time-to-market minimal.**
+- **V2 — pack dédié `charpente`** (si traction) : nouveau `VerticalPack` « Charpente / Couverture / Bois » avec vocabulaire propre (ouvrage, métré, débit…), KPIs métier et le configurateur en **feature phare** → positionnement marketing net « YelloowPlan pour charpentiers ». Coût : 1 pack + page vitrine `/metiers/charpente`. À décider après les premiers usages.
 
 + `ModuleId |= 'charpente'`, + un Stripe Price récurrent, + l'env var. Le webhook `checkout.session.completed (kind=addon)` écrit déjà le `feature_flags` row → débloque le module. **Rien d'autre à câbler côté facturation.**
 
