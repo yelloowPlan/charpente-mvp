@@ -114,8 +114,8 @@ Le moteur lui-même est **pur** (aucune I/O, aucun tenant) → surface d'attaque
 
 ## 8. Plan de déploiement (phasé, réversible)
 
-1. **P0 — packaging** (ce repo) : figer l'API publique du moteur, doc `CONSUMERS.md`, vérifier zéro dépendance runtime. *(fait dans cette RFC)*
-2. **P1 — vendoring** : `charpente-moteur` dans le monorepo YelloowPlan, `transpilePackages`, un test smoke d'import. Aucun impact utilisateur (pas de route).
+1. **P0 — packaging** (ce repo) : figer l'API publique du moteur, doc `CONSUMERS.md`, vérifier zéro dépendance runtime. ✅
+2. **P1 — vendoring** ✅ : `@yelloowplan/charpente-moteur` dans le monorepo (branche `feat/charpente-module`, **non poussée**, main intact). Package isolé TS pur zéro-dep ; smoke test Vitest (golden TTC vérifié) + type-check OK **dans le monorepo**. Aucune route, aucune DB, aucun fichier app touché. `transpilePackages` reporté à P2 (utile seulement quand l'app importe le moteur).
 3. **P2 — module derrière flag** : route `[slug]/charpente` + table + actions (RLS + audit), **gated `charpente`**, activable manuellement pour un tenant pilote (compte « comp »). Pas encore en vente.
 4. **P3 — add-on payant** : entrée `ADDONS`, Stripe Price, page billing. GA.
 5. **P4 — synergies** : lien CRM (client_id), devis → finance, vocabulaire métier.
