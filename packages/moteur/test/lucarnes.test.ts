@@ -68,4 +68,16 @@ describe("etudier — lucarnes intégrées", () => {
   it("largeur de lucarne nulle ⇒ bloquant", () => {
     assert.throws(() => etudier(avec([{ ...gable, largeurM: 0 }])));
   });
+
+  it("lucarne surdimensionnée : alerte + métré plafonné (pas de surface aberrante)", () => {
+    const enorme = avec([{ ...gable, largeurM: 50, avanceeM: 50, hauteurFaceM: 50 }]);
+    const e = etudier(enorme);
+    assert.ok(e.alertes.some((x) => x.message.includes("dépassant le pan")));
+    // surface composée totale reste de l'ordre du toit (132 m²), pas ×20
+    assert.ok(e.geometrie.surfaceToitureM2 < 3 * etudier(projetParDefaut()).geometrie.surfaceToitureM2);
+  });
+
+  it("pan porteur invalide ⇒ bloquant", () => {
+    assert.throws(() => etudier(avec([{ ...gable, cote: "haut" as unknown as "avant" }])));
+  });
 });

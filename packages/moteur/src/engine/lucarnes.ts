@@ -28,6 +28,16 @@ export function metreLucarnes(p: ParametresProjet): MetreLucarnes {
   const lucarnes = p.toiture.lucarnes ?? [];
   const entraxe = p.charpente.entraxeChevronM;
   const s = p.charpente.sections;
+
+  // Bornes physiques : une lucarne ne peut pas dépasser le pan qui la porte.
+  // On plafonne pour que le métré reste réaliste même si la saisie est aberrante
+  // (la validation a déjà levé une alerte le cas échéant).
+  const alpha = (p.toiture.penteDeg * Math.PI) / 180;
+  const demiPortee = p.batiment.largeurM / 2;
+  const cosA = Math.cos(alpha);
+  const largeurMax = p.batiment.longueurM + 2 * p.batiment.debordPignonM;
+  const avanceeMax = cosA > 1e-6 ? demiPortee / cosA : demiPortee;
+  const hauteurMax = demiPortee * Math.tan(alpha);
   const elements: Element[] = [];
   let surfaceM2 = 0;
   let mlNoues = 0;
@@ -41,9 +51,9 @@ export function metreLucarnes(p: ParametresProjet): MetreLucarnes {
   };
 
   for (const luc of lucarnes) {
-    const L = Math.max(0.1, luc.largeurM);
-    const hF = Math.max(0.1, luc.hauteurFaceM);
-    const av = Math.max(0.1, luc.avanceeM);
+    const L = Math.min(Math.max(0.1, luc.largeurM), largeurMax);
+    const hF = Math.min(Math.max(0.1, luc.hauteurFaceM), Math.max(0.1, hauteurMax));
+    const av = Math.min(Math.max(0.1, luc.avanceeM), Math.max(0.1, avanceeMax));
 
     if (luc.type === "deux_pans") {
       const demi = L / 2;

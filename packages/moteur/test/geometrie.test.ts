@@ -128,6 +128,21 @@ describe("calculerGeometrieComposee — toitures composées (RFC 0001, Lot A)", 
     assert.ok(plate.hauteurAileM < raide.hauteurAileM); // h2 plus bas
     assert.ok(plate.penetrationM < raide.penetrationM); // pénètre moins profond
     assert.ok(Number.isFinite(plate.longueurNoueM) && plate.longueurNoueM > 0);
+    // honnêteté : pente différente ⇒ surface NON marquée exacte
+    assert.equal(plate.surfaceExacte, false);
+    assert.equal(raide.surfaceExacte, true); // même pente ⇒ exacte
+  });
+
+  it("honnêteté surfaceExacte : faux si largeur plafonnée (W2>W1)", () => {
+    const W1 = base.batiment.largeurM;
+    const gc = calculerGeometrieComposee({
+      ...base,
+      toiture: {
+        ...base.toiture,
+        composition: { raccord: "T", secondaire: { largeurM: W1 + 4, longueurM: 4, positionM: 5 } },
+      },
+    });
+    assert.equal(gc.surfaceExacte, false);
   });
 
   it("Lot B — aile plus large que le principal (W2 > W1) : plafonnée à W1, géométrie saine", () => {

@@ -110,6 +110,15 @@ export function calculerGeometrieComposee(p: ParametresProjet): GeometrieCompose
   const surfaceAile = nbAiles * 2 * rampantAileM * compo.secondaire.longueurM;
   const surfaceComposeeM2 = principal.surfaceToitureM2 + surfaceAile;
 
+  // Exactitude HONNÊTE : la forme additive n'est exacte que si l'aile a la MÊME pente
+  // (alors aire-mortaise principal == aire-remplissage aile → bilan nul), sans largeur
+  // plafonnée (W2>W1) ni pénétration plafonnée (aile plus haute). Pentes différentes
+  // ⇒ approchée.
+  const largeurPlafonnee = compo.secondaire.largeurM > W1 + 1e-9;
+  const pentePlafonnee = (W2 / 2) * (tan2 / tan1) > W1 / 2 + 1e-9;
+  const memePente = Math.abs(alpha2 - alpha1) < 1e-9;
+  const surfaceExacte = memePente && !largeurPlafonnee && !pentePlafonnee;
+
   return {
     principal,
     longueurNoueM,
@@ -118,7 +127,7 @@ export function calculerGeometrieComposee(p: ParametresProjet): GeometrieCompose
     hauteurAileM,
     penetrationM,
     surfaceComposeeM2,
-    surfaceExacte: true, // surface par volume (chaque pente son cos) — exacte
+    surfaceExacte,
   };
 }
 

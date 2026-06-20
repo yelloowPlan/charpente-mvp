@@ -53,14 +53,23 @@ function ecrire(store: Magasin, cle: string, valeur: unknown): void {
 function estProjetValide(p: unknown): p is ParametresProjet {
   if (typeof p !== "object" || p === null) return false;
   const o = p as Record<string, unknown>;
-  return (
-    typeof o.batiment === "object" &&
-    typeof o.toiture === "object" &&
-    typeof o.charpente === "object" &&
-    typeof o.essence === "object" &&
-    typeof o.prix === "object" &&
-    typeof o.debit === "object"
-  );
+  if (
+    typeof o.batiment !== "object" ||
+    typeof o.toiture !== "object" ||
+    typeof o.charpente !== "object" ||
+    typeof o.essence !== "object" ||
+    typeof o.prix !== "object" ||
+    typeof o.debit !== "object"
+  ) {
+    return false;
+  }
+  // Durcissement (RFC 0003 audit) : rejeter un brouillon corrompu dont les champs
+  // numériques critiques ne sont pas des NOMBRES finis (évite NaN / concat de string
+  // « 5 » qui se propageraient au moteur depuis un localStorage altéré).
+  const bat = o.batiment as Record<string, unknown>;
+  const toit = o.toiture as Record<string, unknown>;
+  const finis = [bat.longueurM, bat.largeurM, toit.penteDeg];
+  return finis.every((v) => typeof v === "number" && Number.isFinite(v));
 }
 
 function estEnregistrementValide(e: unknown): e is ProjetEnregistre {

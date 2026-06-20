@@ -44,6 +44,21 @@ describe("export CSV", () => {
     assert.equal(lignes.length, etude.debit.sections.length + 1);
   });
 
+  it("neutralise l'injection de formule (libellé/unité commençant par = + - @)", () => {
+    const devisForge = {
+      lignes: [
+        { libelle: "=cmd|'/c calc'!A0", quantite: 1, unite: "@evil", prixUnitaireCents: 100, totalHtCents: 100 },
+      ],
+      totalHtCents: 100,
+      tvaCents: 20,
+      totalTtcCents: 120,
+      tauxTvaPct: 20,
+    };
+    const csv = devisVersCsv(devisForge);
+    assert.ok(csv.includes("'=cmd") || csv.includes("\"'=cmd"), "formule = non neutralisée");
+    assert.ok(csv.includes("'@evil") || csv.includes("\"'@evil"), "@ non neutralisé");
+  });
+
   it("échappe les champs contenant le séparateur", () => {
     // Les formules ne contiennent pas de ';' ; on vérifie le mécanisme directement
     // via une formule forgée n'est pas exposé — on teste l'absence de ';' parasite.

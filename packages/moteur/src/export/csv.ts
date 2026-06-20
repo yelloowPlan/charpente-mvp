@@ -22,9 +22,15 @@ function qte(n: number): string {
   return String(n).replace(".", ",");
 }
 
-/** Échappement CSV : guillemets si le champ contient `;`, `"` ou un saut de ligne. */
+/**
+ * Échappement CSV. Deux protections :
+ *  - guillemets si le champ contient `;`, `"` ou un saut de ligne ;
+ *  - anti-injection de formule : un champ commençant par `= + - @`, tab ou CR est
+ *    préfixé d'une apostrophe, sinon Excel/LibreOffice l'exécute à l'ouverture.
+ */
 function champ(v: string): string {
-  return /[;"\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+  const sain = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
+  return /[;"\n]/.test(sain) ? `"${sain.replace(/"/g, '""')}"` : sain;
 }
 
 function versCsv(entete: string[], lignes: string[][]): string {

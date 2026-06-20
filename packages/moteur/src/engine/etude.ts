@@ -150,15 +150,36 @@ export function validerProjet(p: ParametresProjet): Alerte[] {
 
   // Lucarnes (RFC 0002) — garde-fous d'entrée
   const Lbat = p.batiment.longueurM + 2 * p.batiment.debordPignonM;
+  // Bornes physiques : une lucarne ne peut pas être plus grande que le pan qui la porte.
+  const alphaL = (p.toiture.penteDeg * Math.PI) / 180;
+  const demiPorteeL = p.batiment.largeurM / 2;
+  const rampantMax = Math.cos(alphaL) > 1e-6 ? demiPorteeL / Math.cos(alphaL) : Infinity;
+  const hauteurFaitMax = demiPorteeL * Math.tan(alphaL);
   for (const [i, luc] of (p.toiture.lucarnes ?? []).entries()) {
     const n = i + 1;
     if (!(luc.largeurM > 0)) bloquant(`Lucarne ${n} : largeur doit être > 0.`);
     if (!(luc.hauteurFaceM > 0)) bloquant(`Lucarne ${n} : hauteur de face doit être > 0.`);
     if (!(luc.avanceeM > 0)) bloquant(`Lucarne ${n} : avancée doit être > 0.`);
+    if (luc.cote !== "avant" && luc.cote !== "arriere") {
+      bloquant(`Lucarne ${n} : pan porteur invalide (attendu « avant » ou « arrière »).`);
+    }
     if (luc.positionXM < 0 || luc.positionXM > Lbat) {
       a.push({
         niveau: "attention",
         message: `Lucarne ${n} : position (${luc.positionXM} m) hors du bâtiment [0 ; ${Lbat.toFixed(2)} m].`,
+      });
+    }
+    if (
+      luc.largeurM > Lbat + 1e-6 ||
+      luc.avanceeM > rampantMax + 1e-6 ||
+      luc.hauteurFaceM > hauteurFaitMax + 1e-6
+    ) {
+      a.push({
+        niveau: "attention",
+        message:
+          `Lucarne ${n} : dimensions dépassant le pan porteur (max ≈ largeur ${Lbat.toFixed(1)} m, ` +
+          `avancée ${rampantMax.toFixed(1)} m, hauteur ${hauteurFaitMax.toFixed(1)} m) — ` +
+          "métré plafonné à la taille du pan.",
       });
     }
   }

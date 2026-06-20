@@ -28,7 +28,19 @@ const DENSITE: Record<string, number> = {
 };
 
 export function metreCouverture(p: ParametresProjet, geo?: GeometrieToit): MetreCouverture {
-  const g = geo ?? calculerGeometrie(p);
+  // Sans `geo`, on reconstruit une géométrie COHÉRENTE avec les linéaires ajoutés
+  // plus bas (composition + lucarnes) — sinon surface mono mais linéaires composés.
+  let g = geo;
+  if (!g) {
+    const base = p.toiture.composition
+      ? (() => {
+          const gc = calculerGeometrieComposee(p);
+          return { ...gc.principal, surfaceToitureM2: gc.surfaceComposeeM2 };
+        })()
+      : calculerGeometrie(p);
+    const surfLuc = metreLucarnes(p).surfaceM2;
+    g = surfLuc > 0 ? { ...base, surfaceToitureM2: base.surfaceToitureM2 + surfLuc } : base;
+  }
   const Lp = g.longueurPanM;
   const W = p.batiment.largeurM;
   const d = p.batiment.debordRampantM;
